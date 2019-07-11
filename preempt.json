@@ -1,0 +1,598 @@
+{
+    "appid": "dd770b20-ce36-4c9a-afe6-1784ffaa4fd7",
+    "name": "Preempt",
+    "description": "This app implements various user actions",
+    "type": "identity management",
+    "product_vendor": "Preempt",
+    "logo": "logo_preempt.svg",
+    "logo_dark": "logo_preempt_dark.svg",
+    "product_name": "Platform",
+    "product_version_regex": ".*",
+    "publisher": "Splunk",
+    "license": "Copyright (c) 2019 Splunk Inc.",
+    "app_version": "1.0.0",
+    "utctime_updated": "2019-06-26T21:37:51.793033Z",
+    "package_name": "phantom_preempt",
+    "main_module": "preempt_connector.pyc",
+    "min_phantom_version": "4.2.7532",
+    "app_wizard_version": "1.0.0",
+    "configuration": {
+        "platform_address": {
+            "description": "URL or IP of Preempt Platform",
+            "data_type": "string",
+            "required": true,
+            "value_list": [],
+            "default": "",
+            "order": 0
+        },
+        "api_token": {
+            "description": "API token",
+            "data_type": "password",
+            "required": true,
+            "value_list": [],
+            "default": "",
+            "order": 1
+        }
+    },
+    "actions": [
+        {
+            "action": "test connectivity",
+            "identifier": "test_connectivity",
+            "description": "Validate the asset configuration for connectivity using supplied configuration",
+            "verbose": "",
+            "type": "test",
+            "read_only": true,
+            "parameters": {},
+            "output": [],
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "on poll",
+            "description": "Ingest from Preempt",
+            "verbose": "The configured query is what will be used during ingestion. If you only wish to show certain fields, then you can specify these as a comma separated list in the configuration. If left unspecified, all available fields will be added to each artifact. When limiting the amount of events to ingest, it will ingest the most recent events. By specifying the max count to 0, all events will be ingested.<br><br>",
+            "type": "ingest",
+            "identifier": "on_poll",
+            "read_only": true,
+            "parameters": {
+                "container_id": {
+                    "description": "Parameter ignored in this app",
+                    "data_type": "numeric"
+                },
+                "start_time": {
+                    "description": "Parameter ignored in this app",
+                    "data_type": "numeric"
+                },
+                "end_time": {
+                    "description": "Parameter ignored in this app",
+                    "data_type": "numeric"
+                },
+                "container_count": {
+                    "description": "Maximum number of events to query for",
+                    "data_type": "numeric",
+                    "default": 100
+                },
+                "artifact_count": {
+                    "description": "Parameter ignored in this app",
+                    "data_type": "numeric"
+                }
+            },
+            "output": [],
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "get user attributes",
+            "identifier": "get_user_attributes",
+            "description": "Gets the attributes of a user",
+            "verbose": "",
+            "type": "investigate",
+            "read_only": true,
+            "parameters": {
+                "username": {
+                    "description": "Username or Attribute value to match",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [
+                        "preempt user name"
+                    ],
+                    "order": 0
+                },
+                "attribute": {
+                    "description": "Attribute name to match",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": false,
+                    "value_list": [
+                        "samAccountName",
+                        "primaryDisplayName",
+                        "secondaryDisplayName"
+                    ],
+                    "order": 1
+                },
+                "domain": {
+                    "description": "Domain of user",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": false,
+                    "contains": [
+                        "domain"
+                    ],
+                    "order": 2
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.riskFactors.*.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "AGED_PASSWORD"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "USER"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.secondaryDisplayName",
+                    "data_type": "string",
+                    "example_values": [
+                        "CORP.CONTOSO.COM\\Administrator"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.riskScore",
+                    "data_type": "numeric",
+                    "example_values": [
+                        0.47
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.isAdmin",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.watched",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.entityId",
+                    "data_type": "string",
+                    "example_values": [
+                        "b430e2a0-2df5-4945-a969-d16b1aa0a75f"
+                    ],
+                    "contains": [
+                        "preempt entity id"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.isHuman",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.emailAddresses",
+                    "data_type": "string",
+                    "example_values": [
+                        "administrator@corp.contoso.com"
+                    ],
+                    "contains": [
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.primaryDisplayName",
+                    "data_type": "string",
+                    "example_values": [
+                        "The Administrator"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Risk score: 0.47, Primary display name: The Administrator"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.username",
+                    "data_type": "string",
+                    "example_values": [
+                        "administrator"
+                    ],
+                    "contains": [
+                        "preempt user name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.attribute",
+                    "data_type": "string",
+                    "example_values": [
+                        "samAccountName"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.domain",
+                    "data_type": "string",
+                    "example_values": [
+                        "CORP.CONTOSO.COM"
+                    ],
+                    "contains": [
+                        "domain"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.risk_score",
+                    "data_type": "numeric",
+                    "example_values": [
+                        0.47
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.primary_display_name",
+                    "data_type": "string",
+                    "example_values": [
+                        "The Administrator"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
+            "render": {
+                "type": "custom",
+                "width": 10,
+                "height": 5,
+                "view": "preempt_view.display_user_attributes",
+                "title": "User Attributes"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "get user risk",
+            "identifier": "get_user_risk",
+            "description": "Gets the risk of a user",
+            "verbose": "",
+            "type": "investigate",
+            "read_only": true,
+            "parameters": {
+                "username": {
+                    "description": "Username or Attribute value to match",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [
+                        "preempt user name"
+                    ],
+                    "order": 0
+                },
+                "domain": {
+                    "description": "Domain of user",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": false,
+                    "contains": [
+                        "domain"
+                    ],
+                    "order": 1
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.riskScore",
+                    "data_type": "string",
+                    "example_values": [
+                        "Unavailable",
+                        0.47
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Result: Username and domain combination not found",
+                        "Risk score: 0.47"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.username",
+                    "data_type": "string",
+                    "example_values": [
+                        "administrator"
+                    ],
+                    "contains": [
+                        "preempt user name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.domain",
+                    "data_type": "string",
+                    "example_values": [
+                        "CORP.CONTOSO.COMa",
+                        "CORP.CONTOSO.COM"
+                    ],
+                    "contains": [
+                        "domain"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.result",
+                    "data_type": "string",
+                    "example_values": [
+                        "Username and domain combination not found"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.riskFactors.*.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "AGED_PASSWORD"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.risk_score",
+                    "data_type": "numeric",
+                    "example_values": [
+                        0.47
+                    ]
+                }
+            ],
+            "render": {
+                "type": "custom",
+                "width": 10,
+                "height": 5,
+                "view": "preempt_view.display_user_risk",
+                "title": "User Risk"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "watch user",
+            "identifier": "watch_user",
+            "description": "Watch a user",
+            "verbose": "",
+            "undo": "unwatch user",
+            "type": "investigate",
+            "read_only": false,
+            "parameters": {
+                "username": {
+                    "description": "Username or Attribute value to match",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [
+                        "preempt user name"
+                    ],
+                    "order": 0
+                },
+                "domain": {
+                    "description": "Domain of user",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": false,
+                    "contains": [
+                        "domain"
+                    ],
+                    "order": 1
+                }
+            },
+            "output": [],
+            "render": {
+                "type": "table"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "unwatch user",
+            "identifier": "unwatch_user",
+            "description": "Stop watching a user",
+            "verbose": "",
+            "undo": "watch user",
+            "type": "investigate",
+            "read_only": false,
+            "parameters": {
+                "username": {
+                    "description": "Username or Attribute value to match",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [
+                        "preempt user name"
+                    ],
+                    "order": 0
+                },
+                "domain": {
+                    "description": "Domain of user",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": false,
+                    "contains": [
+                        "domain"
+                    ],
+                    "order": 1
+                }
+            },
+            "output": [],
+            "render": {
+                "type": "table"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "update incident",
+            "identifier": "update_incident",
+            "description": "Update an incident",
+            "verbose": "",
+            "type": "investigate",
+            "read_only": false,
+            "parameters": {
+                "incident_id": {
+                    "description": "ID of incident",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [
+                        "preempt incident id"
+                    ],
+                    "order": 0
+                },
+                "stage": {
+                    "description": "Stage to update incident to",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": false,
+                    "contains": [],
+                    "value_list": [
+                        "NEW",
+                        "IN_PROGRESS",
+                        "DISMISS",
+                        "FALSE_POSITIVE",
+                        "RESOLVED"
+                    ],
+                    "order": 1
+                },
+                "reason": {
+                    "description": "Reason for updating incident",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": false,
+                    "order": 2
+                }
+            },
+            "output": [],
+            "render": {
+                "type": "table"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "get user activity",
+            "identifier": "get_user_activity",
+            "description": "Get user activity from the specified number of hours ago",
+            "verbose": "",
+            "type": "investigate",
+            "read_only": false,
+            "parameters": {
+                "username": {
+                    "description": "Username to get activity of",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [
+                        "preempt user name"
+                    ],
+                    "order": 0
+                },
+                "start_time": {
+                    "description": "Starting time of search in ISO-8601 date string format (YYYY-MM-DD). Examples: 2019-12-12, P-1W",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": false,
+                    "order": 1
+                },
+                "hours": {
+                    "description": "Number of hours to search from start_time",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": false,
+                    "order": 2
+                }
+            },
+            "output": [],
+            "render": {
+                "type": "table"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "on poll",
+            "description": "Ingest tickets from JIRA",
+            "type": "ingest",
+            "identifier": "on_poll",
+            "read_only": true,
+            "parameters": {
+                "start_time": {
+                    "data_type": "numeric",
+                    "description": "Parameter ignored in this app",
+                    "order": 0
+                },
+                "end_time": {
+                    "data_type": "numeric",
+                    "description": "Parameter ignored in this app",
+                    "order": 1
+                },
+                "container_id": {
+                    "data_type": "string",
+                    "description": "Parameter ignored in this app",
+                    "order": 2
+                },
+                "container_count": {
+                    "data_type": "numeric",
+                    "description": "Maximum number of tickets ingest during poll now",
+                    "required": false,
+                    "default": 1,
+                    "order": 3
+                },
+                "artifact_count": {
+                    "data_type": "numeric",
+                    "description": "Parameter ignored in this app",
+                    "order": 4
+                }
+            },
+            "output": [],
+            "versions": "EQ(*)"
+        }
+    ]
+}
