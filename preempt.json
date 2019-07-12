@@ -428,7 +428,82 @@
                     "order": 1
                 }
             },
-            "output": [],
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.updatedEntities.*.secondaryDisplayName",
+                    "data_type": "string",
+                    "example_values": [
+                        "CORP.CONTOSO.COM\\Administrator"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.updatedEntities.*.primaryDisplayName",
+                    "data_type": "string",
+                    "example_values": [
+                        "The Administrator"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Result: The Administrator was added to the watch list",
+                        "Result: No entities updated"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.username",
+                    "data_type": "string",
+                    "example_values": [
+                        "administrator",
+                        "administrator_test"
+                    ],
+                    "contains": [
+                        "preempt user name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.domain",
+                    "data_type": "string",
+                    "example_values": [
+                        "CORP.CONTOSO.COM"
+                    ],
+                    "contains": [
+                        "domain"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.result",
+                    "data_type": "string",
+                    "example_values": [
+                        "The Administrator was added to the watch list",
+                        "No entities updated"
+                    ],
+                    "column_order": 0,
+                    "column_name": "Status"
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
             "render": {
                 "type": "table"
             },
@@ -464,7 +539,82 @@
                     "order": 1
                 }
             },
-            "output": [],
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.updatedEntities.*.secondaryDisplayName",
+                    "data_type": "string",
+                    "example_values": [
+                        "CORP.CONTOSO.COM\\Administrator"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.updatedEntities.*.primaryDisplayName",
+                    "data_type": "string",
+                    "example_values": [
+                        "The Administrator"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Result: The Administrator was removed from the watch list",
+                        "Result: No entities updated"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.username",
+                    "data_type": "string",
+                    "example_values": [
+                        "administrator",
+                        "administrator_test"
+                    ],
+                    "contains": [
+                        "preempt user name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.domain",
+                    "data_type": "string",
+                    "example_values": [
+                        "CORP.CONTOSO.COM"
+                    ],
+                    "contains": [
+                        "domain"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.result",
+                    "data_type": "string",
+                    "example_values": [
+                        "The Administrator was removed from the watch list",
+                        "No entities updated"
+                    ],
+                    "column_order": 0,
+                    "column_name": "Status"
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
             "render": {
                 "type": "table"
             },

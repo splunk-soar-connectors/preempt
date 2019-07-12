@@ -71,9 +71,10 @@
 </style>
 <div class="preempt-app" style="overflow: auto; width: 100%; height: 100%; padding-left:10px; padding-right:10px"> <!-- Main Div -->
   {% for result in results %} <!-- loop for each result -->
-    {% if result.data.0 %}
-      <h3 class="wf-h3-style">Risk Score: {{ result.data.0.riskScore }}</h3>
+    {% if result.data %}
+      <h3 class="wf-h3-style">{{ result.data }}</h3>
 
+      <!-- User Risk -->
       {% if result.data.0.riskFactors %}
       <table class="wf-table-horizontal">
         <tr>
@@ -83,7 +84,7 @@
           <tr>
             <td>{{ data.type }}</td>
           </tr>
-      {% endfor %} <!-- loop for each data end -->
+      {% endfor %}
       </table>
       {% endif %}
 
@@ -96,4 +97,3 @@
 </div> <!-- Main Div -->
 
 {% endblock %} <!-- Main Start Block -->
-

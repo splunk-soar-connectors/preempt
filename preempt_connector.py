@@ -326,11 +326,14 @@ class PreemptConnector(BaseConnector):
         if (phantom.is_fail(ret_val)):
             return action_result.get_status()
 
-        action_result.add_data(response)
+        result = response.get('data', {}).get('addEntitiesToWatchList', {})
+        action_result.add_data(result)
 
-        # Add a dictionary that is made up of the most important values from data into the summary
-        # summary = action_result.update_summary({})
-        # summary['num_data'] = len(action_result['data'])
+        summary = action_result.update_summary({})
+        if len(result.get('updatedEntities', [])) == 0:
+            summary['result'] = "No entities updated"
+        else:
+            summary['result'] = "{} was added to the watch list".format(result['updatedEntities'][0]['primaryDisplayName'])
 
         # Return success, no need to set the message, only the status
         # BaseConnector will create a textual message based off of the summary dictionary
@@ -363,11 +366,14 @@ class PreemptConnector(BaseConnector):
         if (phantom.is_fail(ret_val)):
             return action_result.get_status()
 
-        action_result.add_data(response)
+        result = response.get('data', {}).get('removeEntitiesFromWatchList', {})
+        action_result.add_data(result)
 
-        # Add a dictionary that is made up of the most important values from data into the summary
-        # summary = action_result.update_summary({})
-        # summary['num_data'] = len(action_result['data'])
+        summary = action_result.update_summary({})
+        if len(result.get('updatedEntities', [])) == 0:
+            summary['result'] = "No entities updated"
+        else:
+            summary['result'] = "{} was removed from the watch list".format(result['updatedEntities'][0]['primaryDisplayName'])
 
         # Return success, no need to set the message, only the status
         # BaseConnector will create a textual message based off of the summary dictionary
