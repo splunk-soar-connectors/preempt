@@ -10,3 +10,5 @@ ATTRIBUTE_TYPES = {
     'primaryDisplayName': 'primaryDisplayNames',
     'secondaryDisplayName': 'secondaryDisplayNames'
 }
+
+PREEMPT_ERR_FAILURES = "Some incidents had issues during ingestion; see logs for details."

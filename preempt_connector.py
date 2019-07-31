@@ -14,7 +14,8 @@ import json
 from bs4 import BeautifulSoup
 
 import time
-import datetime
+from datetime import datetime
+
 
 class RetVal(tuple):
     def __new__(cls, val1, val2=None):
@@ -207,7 +208,7 @@ class PreemptConnector(BaseConnector):
                         type
                     }}
 
-                    ... on UserEntity 
+                    ... on UserEntity
                     {{
                         emailAddresses
                         phoneNumbers
@@ -247,6 +248,101 @@ class PreemptConnector(BaseConnector):
             action_result.add_data({ 'riskScore': 'Unavailable' })
             action_result.add_data({ 'primaryDisplayName': 'Unavailable' })
             summary['result'] = "Username and domain combination not found"
+
+        # Return success, no need to set the message, only the status
+        # BaseConnector will create a textual message based off of the summary dictionary
+        return action_result.set_status(phantom.APP_SUCCESS)
+
+    def _handle_get_user_activity(self, param):
+
+        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+
+        # Add an action result object to self (BaseConnector) to represent the action for this param
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        while True:
+
+            username = param['username']
+            start_time = param['start_time']
+            types = param.get('types')
+            if types is not None:
+                types = [i.strip().upper() for i in types.split(',')]
+                types = "types: {}".format(types).replace("'", "")
+
+            limit = param.get('limit', None)
+            if limit is None:
+                result_limit = 1000  # Minimize the number of REST calls made by using max limit
+            else:
+                result_limit = int(limit)
+
+            after = param.get('after', None)
+            if after is None:
+                after = ''
+
+            data = '''{{
+                timeline(sourceEntityQuery: {{ samAccountNames: "{username}" }}
+                        startTime: "{start_time}"
+                        {after}
+                        sortOrder: DESCENDING
+                        {types}
+                        first: {result_limit})
+                {{
+                    nodes
+                    {{
+                    timestamp
+                    eventType
+                    eventLabel
+                    eventSeverity
+                    ... on TimelineAuthenticationEvent
+                    {{
+                        authenticationType
+                        userEntity
+                        {{
+                        primaryDisplayName
+                        secondaryDisplayName
+                        }}
+                        endpointEntity
+                        {{
+                        primaryDisplayName
+                        secondaryDisplayName
+                        }}
+                        ipAddress
+                        hostName
+                    }}
+                    }}
+                    pageInfo {{
+                        endCursor
+                        hasNextPage
+                    }}
+                }}
+            }}'''.format(username=username, start_time=start_time, after=after, types=types, result_limit=result_limit)
+
+            # make rest call
+            ret_val, response = self._make_rest_call(action_result, data=data)
+
+            if (phantom.is_fail(ret_val)):
+                return action_result.get_status()
+
+            result = response.get('data', {}).get('timeline', {})
+            nodes = result.get('nodes', [])
+
+            if limit is not None and len(action_result.get_data()) + len(nodes) > int(limit):
+                for item in nodes:
+                    if int(limit) > len(action_result.get_data()):
+                        action_result.add_data(item)
+                    else:
+                        break
+            else:
+                action_result.update_data(nodes)
+
+            has_next_page = result.get('pageInfo', {}).get('hasNextPage', False)
+            if has_next_page is True:
+                param.update({ 'after': 'after: "{}"'.format(result['pageInfo']['endCursor']) })
+            else:
+                break
+
+        summary = action_result.update_summary({})
+        summary['num_results'] = len(action_result.get_data())
 
         # Return success, no need to set the message, only the status
         # BaseConnector will create a textual message based off of the summary dictionary
@@ -379,6 +475,81 @@ class PreemptConnector(BaseConnector):
         # BaseConnector will create a textual message based off of the summary dictionary
         return action_result.set_status(phantom.APP_SUCCESS)
 
+    def _handle_get_incident(self, param):
+
+        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+
+        # Add an action result object to self (BaseConnector) to represent the action for this param
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        incident_number = param['incident_number']
+
+        data = '''{{
+            incident(incidentId: "INC-{incident_number}")
+            {{
+                ... on Incident {{
+                alertEvents {{
+                    alertId
+                    alertType
+                    endTime
+                    endpointEntity {{
+                    impactScore
+                    hostName
+                    riskScore
+                    riskFactors {{
+                        severity
+                        type
+                    }}
+                    watched
+                    }}
+
+                }}
+                comments {{
+                    author {{
+                        displayName
+                        type
+                        username
+                    }}
+                    text
+                    timestamp
+                }}
+
+                compromisedEntities {{
+                    accounts {{
+                        archived
+                        dataSource
+                        enabled
+                    }}
+                }}
+
+                endTime
+                incidentId
+                lifeCycleStage
+                markedAsRead
+                severity
+                startTime
+                type
+                }}
+            }}
+            }}'''.format(incident_number=incident_number)
+
+        # make rest call
+        ret_val, response = self._make_rest_call(action_result, data=data)
+
+        if (phantom.is_fail(ret_val)):
+            return action_result.get_status()
+
+        result = response.get('data', {}).get('incident', {})
+        action_result.add_data(result)
+
+        # Add a dictionary that is made up of the most important values from data into the summary
+        summary = action_result.update_summary({})
+        summary['severity'] = result.get('severity', 'Could not retrieve severity')
+
+        # Return success, no need to set the message, only the status
+        # BaseConnector will create a textual message based off of the summary dictionary
+        return action_result.set_status(phantom.APP_SUCCESS)
+
     def _handle_update_incident(self, param):
 
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
@@ -386,135 +557,430 @@ class PreemptConnector(BaseConnector):
         # Add an action result object to self (BaseConnector) to represent the action for this param
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        incident_id = param['incident_id']
-        stage = param['stage']
-        reason = param['reason']
-
-        data = '''mutation {{
-            setIncidentState(input: {{ incidentId: "{incident_id}", lifeCycleStage: {stage}, reason: "{reason}" }})
-            {{
-                incident
-                {{
-                lifeCycleStage
-                }}
-            }}
-        }}'''.format(incident_id=incident_id, stage=stage, reason=reason)
-
-        # make rest call
-        ret_val, response = self._make_rest_call(action_result, data=data)
-
-        if (phantom.is_fail(ret_val)):
-            return action_result.get_status()
-
-        action_result.add_data(response)
+        incident_number = param['incident_number']
+        stage = param.get('stage')
+        reason = param.get('reason')
+        comment = param.get('comment')
 
         # Add a dictionary that is made up of the most important values from data into the summary
-        # summary = action_result.update_summary({})
-        # summary['num_data'] = len(action_result['data'])
+        summary = action_result.update_summary({})
+
+        if stage and reason:
+            data_stage = '''mutation {{
+                setIncidentState(input: {{ incidentId: "INC-{incident_number}", lifeCycleStage: {stage}, reason: "{reason}" }})
+                {{
+                    incident
+                    {{
+                    lifeCycleStage
+                    }}
+                }}
+            }}'''.format(incident_number=incident_number, stage=stage, reason=reason)
+
+            # make rest call
+            ret_val, response = self._make_rest_call(action_result, data=data_stage)
+
+            if (phantom.is_fail(ret_val)):
+                return action_result.get_status()
+
+            result = response.get('data', {})
+            action_result.add_data(result)
+
+            summary['status'] = "Incident state is {}".format(stage)
+
+        if comment:
+            data_comment = '''mutation {{
+                addCommentToIncident(input: {{ comment: "{comment}", incidentId: "INC-{incident_number}"}}){{
+                    incident {{
+                        comments {{
+                            author {{
+                                displayName
+                            }}
+                            text
+                        }}
+                    }}
+                }}
+            }}'''.format(incident_number=incident_number, comment=comment)
+
+            # make rest call
+            ret_val, response = self._make_rest_call(action_result, data=data_comment)
+
+            if (phantom.is_fail(ret_val)):
+                return action_result.get_status()
+
+            result = response.get('data', {})
+            action_result.add_data(result)
+
+            summary['num_comments'] = len(result.get('addCommentToIncident', {}).get('incident', {}).get('comments', []))
+
+        if not stage and not reason and not comment:
+            return action_result.set_status(phantom.APP_ERROR, "At least one of either stage and reason OR comment parameters must be included in action request")
 
         # Return success, no need to set the message, only the status
         # BaseConnector will create a textual message based off of the summary dictionary
         return action_result.set_status(phantom.APP_SUCCESS)
 
-    def _handle_get_user_activity(self, param):
+    def _get_artifact_id(self, sdi, container_id):
 
-        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        url = '{0}rest/artifact?_filter_source_data_identifier="{1}"&_filter_container_id={2}'.format(self.get_phantom_base_url(), sdi, container_id)
 
-        # Add an action result object to self (BaseConnector) to represent the action for this param
-        action_result = self.add_action_result(ActionResult(dict(param)))
+        try:
+            r = requests.get(url, verify=False)
+            resp_json = r.json()
+        except Exception as e:
+            self.debug_print("Unable to query Preempt artifact", e)
+            return None
 
-        incident_id = param['incident_id']
-        stage = param['stage']
-        reason = param['reason']
+        if (resp_json.get('count', 0) <= 0):
+            self.debug_print("No artifact matched")
+            return None
 
-        data = '''mutation {{
-            setIncidentState(input: {{ incidentId: "{incident_id}", lifeCycleStage: {stage}, reason: "{reason}" }})
-            {{
-                incident
-                {{
-                lifeCycleStage
-                }}
-            }}
-        }}'''.format(incident_id=incident_id, stage=stage, reason=reason)
+        try:
+            artifact_id = resp_json.get('data', [])[0]['id']
+        except Exception as e:
+            self.debug_print("Artifact results, not proper", e)
+            return None
 
-        # make rest call
-        ret_val, response = self._make_rest_call(action_result, data=data)
+        return artifact_id
 
-        if (phantom.is_fail(ret_val)):
-            return action_result.get_status()
+    def _update_container(self, incident, container_id, last_time):
 
-        action_result.add_data(response)
+        updated = dict()
+        updated['data'] = incident
+        updated['description'] = "{}: {}".format(incident['incidentId'], incident['type'])
 
-        # Add a dictionary that is made up of the most important values from data into the summary
-        # summary = action_result.update_summary({})
-        # summary['num_data'] = len(action_result['data'])
+        url = '{0}rest/container/{1}'.format(self.get_phantom_base_url(), container_id)
 
-        # Return success, no need to set the message, only the status
-        # BaseConnector will create a textual message based off of the summary dictionary
-        return action_result.set_status(phantom.APP_SUCCESS)
+        try:
+            r = requests.post(url, data=json.dumps(updated), verify=False)
+            resp_json = r.json()
+        except Exception as e:
+            self.debug_print("Exception occurred while updating container", e)
+            return phantom.APP_ERROR
+
+        if r.status_code != 200 or resp_json.get('failed'):
+            self.debug_print("There was an issue updating a container", resp_json.get('failed'))
+            return phantom.APP_ERROR
+
+        artifact_list = list()
+        # Artifact ID is in format "INC-<incident_number>-<type>-<timestamp>". Example: "INC-1-comment-2017-11-15T17:50:28.000Z"
+
+        # Check for and add comments as artifacts
+        try:
+            for comment in incident['comments']:
+                if not self._get_artifact_id("{}-{}-{}".format(container_id, 'comment', comment['timestamp']), container_id):
+                    self._handle_comment(comment, container_id, 'Comment', artifact_list)
+        except:
+            pass
+
+        # Check for and add compromised entities as artifacts
+        try:
+            for entity in incident['compromisedEntities']:
+                if not self._get_artifact_id("{}-{}-{}".format(container_id, 'compromisedEntity', entity['creationTime']), container_id):
+                    self._handle_compromised_entity(entity, container_id, 'Compromised Entity', artifact_list)
+        except:
+            pass
+
+        # Check for and add alert events as artifacts
+        try:
+            for event in incident['alertEvents']:
+                if not self._get_artifact_id("{}-{}-{}".format(container_id, 'alertEvent', event['timestamp']), container_id):
+                    self._handle_alert_event(event, container_id, 'Alert Event', artifact_list)
+        except:
+            pass
+
+        if len(artifact_list) > 0:
+            ret_val, message, resp = self.save_artifacts(artifact_list)
+
+            if not ret_val:
+                self.debug_print("Error saving artifact: ", message)
+
+    def _get_container_id(self, incident_id):
+
+        url = '{0}rest/container?_filter_source_data_identifier="{1}"&_filter_asset={2}'.format(self.get_phantom_base_url(), incident_id, self.get_asset_id())
+        # url = '{0}rest/container?_filter_source_data_identifier="{1}"&_filter_asset={2}'.format("https://172.16.182.130/", incident_id, self.get_asset_id())
+
+        try:
+            r = requests.get(url, verify=False)
+            resp_json = r.json()
+        except Exception as e:
+            self.debug_print("Unable to query Preempt incident container", e)
+            return None
+
+        if resp_json.get('count', 0) <= 0:
+            self.debug_print("No container matched")
+            return None
+
+        try:
+            container_id = resp_json.get('data', [])[0]['id']
+        except Exception as e:
+            self.debug_print("Container results, not proper", e)
+            return None
+
+        return container_id
+
+    def _handle_comment(self, comment, container_id, base_name, artifact_list):
+
+        artifact = dict()
+
+        artifact['name'] = '{} by {} ({})'.format(base_name, comment['author']['username'], comment['author']['displayName'])
+        artifact['label'] = 'comment'
+        artifact['container_id'] = container_id
+        # Comments do not have IDs, so using timestamp instead
+        artifact['source_data_identifier'] = "{}-{}-{}".format(container_id, 'comment', comment['timestamp'])
+
+        artifact_cef = dict()
+
+        artifact_cef['body'] = comment['text']
+        artifact_cef['created'] = comment['timestamp']
+        artifact_cef['author_username'] = comment['author']['username']
+        artifact_cef['author_display_name'] = comment['author']['displayName']
+
+        artifact['cef'] = artifact_cef
+
+        artifact_list.append(artifact)
+
+        return phantom.APP_SUCCESS
+
+    def _handle_compromised_entity(self, entity, container_id, base_name, artifact_list):
+
+        artifact = dict()
+
+        artifact['name'] = '{}: {} "{}"'.format(base_name, entity['type'], entity['primaryDisplayName'])
+        artifact['label'] = 'compromised_entity'
+        artifact['container_id'] = container_id
+        artifact['source_data_identifier'] = "{}-{}-{}".format(container_id, 'compromisedEntity', entity['creationTime'])
+
+        artifact_cef = dict()
+
+        artifact_cef['type'] = entity['type']
+        artifact_cef['primary_display_name'] = entity['primaryDisplayName']
+        artifact_cef['secondary_display_name'] = entity['secondaryDisplayName']
+
+        artifact['cef'] = artifact_cef
+
+        artifact_list.append(artifact)
+
+        return phantom.APP_SUCCESS
+
+    def _handle_alert_event(self, event, container_id, base_name, artifact_list):
+
+        for ent in event['entities']:
+            artifact = dict()
+
+            artifact['name'] = '{}: {}'.format(base_name, event['eventLabel'])
+            artifact['label'] = 'alert_event'
+            artifact['container_id'] = container_id
+            artifact['source_data_identifier'] = "{}-{}-{}".format(container_id, 'alertEvent', event['timestamp'])
+
+            artifact_cef = dict()
+
+            artifact_cef['type'] = ent['type']
+            artifact_cef['primary_display_name'] = ent['primaryDisplayName']
+            artifact_cef['secondary_display_name'] = ent['secondaryDisplayName']
+
+            artifact['cef'] = artifact_cef
+
+            artifact_list.append(artifact)
+
+        return phantom.APP_SUCCESS
+
+    def _save_incident(self, incident, last_time):
+
+        # Check if there is already a container for the incident id (Example: INC-1)
+        container_id = self._get_container_id(incident['incidentId'])
+
+        if container_id:
+            # Ticket has already been ingested. Need to update its container.
+            self._update_container(incident, container_id, last_time)
+            return phantom.APP_SUCCESS
+
+        # Build the new container
+        container = dict()
+        container['name'] = "Preempt {}: {}".format(incident['incidentId'], incident['type'])
+        container['data'] = incident
+        container['description'] = "{}: {}".format(incident['incidentId'], incident['type'])
+        container['source_data_identifier'] = incident['incidentId']
+        container['label'] = self.get_config().get('ingest', {}).get('container_label')
+
+        # Save the container
+        ret_val, message, container_id = self.save_container(container)
+
+        if not ret_val:
+            return phantom.APP_ERROR
+
+        artifact_list = list()
+
+        # Check for and add comments as artifacts
+        try:
+            for comment in incident['comments']:
+                self._handle_comment(comment, container_id, 'Comment', artifact_list)
+        except:
+            pass
+
+        # Check for and add compromised entities as artifacts
+        try:
+            for entity in incident['compromisedEntities']:
+                self._handle_compromised_entity(entity, container_id, 'Compromised Entity', artifact_list)
+        except:
+            pass
+
+        # Check for and add alert events as artifacts
+        try:
+            for event in incident['alertEvents']:
+                self._handle_alert_event(event, container_id, 'Alert Event', artifact_list)
+        except:
+            pass
+
+        ret_val, message, resp = self.save_artifacts(artifact_list)
+
+        if not ret_val:
+            return phantom.APP_ERROR
+
+        return phantom.APP_SUCCESS
+
+    def _build_artifact(self, incident, container_id):
+
+        artifact = dict()
+        artifact['container_id'] = container_id
+        artifact['source_data_identifier'] = incident['incidentId']
 
     def _on_poll(self, param):
-        
-        self.save_progress("Connecting to {}".format(self.platform_address))
+
+        self.save_progress("Using URL: {}".format(self.platform_address))
+        self.save_progress(phantom.APP_PROG_CONNECTING_TO_ELLIPSES, self.platform_address)
+
+        # Get config
+        config = self.get_config()
 
         # Add an action result object to self (BaseConnector) to represent the action for this param
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         # Get time from last poll, save now as time for this poll
-        last_time = self._state.get('last_time', 0)
+        last_time = self._state.get('last_time', 0.0)
         self._state['last_time'] = time.time()
+        last_converted_time = datetime.fromtimestamp(last_time)
 
         data = '''{{
-            incidents(after: {after}
-                        sortOrder: DESCENDING
+            incidents({after}
+                        {updated_after}
+                        sortOrder: ASCENDING
                         sortKey: END_TIME
-                        first: 5) {{
+                        first: {max_incidents}) {{
                 nodes {{
-                type
-                startTime
-                endTime
-                compromisedEntities {{
+                    incidentId
                     type
-                    primaryDisplayName
-                    secondaryDisplayName
-                }}
-                alertEvents {{
-                    eventLabel
-                    entities {{
-                    type
-                    primaryDisplayName
-                    secondaryDisplayName
+                    startTime
+                    endTime
+                    comments {{
+                        text
+                        timestamp
+                        author {{
+                            username
+                            displayName
+                        }}
+                    }}
+                    compromisedEntities {{
+                        creationTime
+                        type
+                        primaryDisplayName
+                        secondaryDisplayName
+                    }}
+                    alertEvents {{
+                        timestamp
+                        eventLabel
+                        entities {{
+                            type
+                            primaryDisplayName
+                            secondaryDisplayName
+                        }}
                     }}
                 }}
-                }}
-                pageInfo
-                {{}}
-                endCursor
+                pageInfo {{
+                    endCursor
+                    hasNextPage
                 }}
             }}
         }}'''
 
         # If it's a poll now don't filter based on update time
         if self.is_poll_now():
+            after = ''
+            updated_after = ''
             max_incidents = param.get(phantom.APP_JSON_CONTAINER_COUNT)
 
         # If it's the first poll, don't filter based on update time
         elif (self._state.get('first_run', True)):
             self._state['first_run'] = False
-            max_incidents = int(config.get('first_run_max_tickets', -1))
+            after = ''
+            updated_after = 'updatedAfter: "{}"'.format(last_converted_time)
+            max_incidents = int(config.get('first_run_max_incidents', 1000))
 
         # If it's scheduled polling add a filter for update time being greater than the last poll time
         else:
-            max_incidents = int(config.get('max_incidents', -1))
-            query = '{0}{1}updated>="{2}"'.format(query, ' and ' if query else '', datetime.fromtimestamp(last_time).strftime(JIRA_TIME_FORMAT))
+            after = ''
+            updated_time = datetime.fromtimestamp(last_time + .01)
+            self.save_progress("last_time={}    updated_time={}".format(last_time, updated_time))
+            updated_after = 'updatedAfter: "{}"'.format(updated_time)
+            max_incidents = int(config.get('max_incidents', 1000))
 
+        incidents = list()
         # Make rest call using query
-        ret_val, response = self._make_rest_call(action_result, data=data)
+        while True:
+            query = data.format(after=after, updated_after=updated_after, max_incidents=max_incidents)
 
-        if (phantom.is_fail(ret_val)):
-            self.debug_print(action_result.get_message())
-            self.set_status(phantom.APP_ERROR, action_result.get_message())
-            return phantom.APP_ERROR
+            ret_val, response = self._make_rest_call(action_result, data=query)
+
+            if phantom.is_fail(ret_val):
+                return action_result.get_status()
+
+            # Parse the response to get list of incidents
+            tmp_incidents = response.get('data', {}).get('incidents', {}).get('nodes', [])
+
+            if not tmp_incidents:
+                return action_result.set_status(phantom.APP_SUCCESS)
+
+            if len(incidents) + len(tmp_incidents) >= max_incidents:
+                for item in tmp_incidents:
+                    if max_incidents > len(incidents):
+                        incidents.append(item)
+                        self._state['last_time'] = item['endTime']  # This will be converted to epoch below
+                    else:
+                        break
+                else:
+                    continue
+                break
+            else:
+                incidents += tmp_incidents
+
+            has_next_page = response.get('data', {}).get('incidents', {}).get('pageInfo', {}).get('hasNextPage', False)
+            if has_next_page is True:
+                after = 'after: "{}"'.format(response['data']['incidents']['pageInfo']['endCursor'])
+                updated_after = ''
+            else:
+                break
+
+        # Make sure duplicate tickets are not included
+
+        # Ingest the incidents
+        failed = 0
+        for incident in incidents:
+            if not self._save_incident(incident, last_time):
+                failed += 1
+
+        # Convert last_time to epoch
+        try:
+            utc_time = datetime.strptime(str(self._state['last_time']), "%Y-%m-%dT%H:%M:%S.%fZ")
+            epoch_time = (utc_time - datetime(1970, 1, 1)).total_seconds()
+            self._state['last_time'] = epoch_time
+        except:
+            pass
+            # Already in epoch time
+
+        # Check for save_state API, use it if it is present
+        self.save_state(self._state)
+
+        if failed:
+            return action_result.set_status(phantom.APP_ERROR, PREEMPT_ERR_FAILURES)
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
@@ -533,6 +999,9 @@ class PreemptConnector(BaseConnector):
         elif action_id == 'get_user_attributes':
             ret_val = self._handle_get_user_attributes(param)
 
+        elif action_id == 'get_user_activity':
+            ret_val = self._handle_get_user_activity(param)
+
         elif action_id == 'get_user_risk':
             ret_val = self._handle_get_user_risk(param)
 
@@ -541,6 +1010,9 @@ class PreemptConnector(BaseConnector):
 
         elif action_id == 'unwatch_user':
             ret_val = self._handle_unwatch_user(param)
+
+        elif action_id == 'get_incident':
+            ret_val = self._handle_get_incident(param)
 
         elif action_id == 'update_incident':
             ret_val = self._handle_update_incident(param)
@@ -608,7 +1080,7 @@ if __name__ == '__main__':
 
     if (username and password):
         try:
-            login_url = PreemptConnector._get_phantom_base_url() + '/login'
+            login_url = BaseConnector._get_phantom_base_url() + '/login'
 
             print ("Accessing the Login page")
             r = requests.get(login_url, verify=False)

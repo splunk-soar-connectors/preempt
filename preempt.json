@@ -21,17 +21,27 @@
             "description": "URL or IP of Preempt Platform",
             "data_type": "string",
             "required": true,
-            "value_list": [],
-            "default": "",
             "order": 0
         },
         "api_token": {
             "description": "API token",
             "data_type": "password",
             "required": true,
-            "value_list": [],
-            "default": "",
             "order": 1
+        },
+        "first_run_max_incidents": {
+            "data_type": "numeric",
+            "order": 2,
+            "description": "Maximum incidents to poll first time",
+            "required": false,
+            "default": 1000
+        },
+        "max_incidents": {
+            "data_type": "numeric",
+            "order": 3,
+            "description": "Maximum incidents for scheduled polling",
+            "required": false,
+            "default": 100
         }
     },
     "actions": [
@@ -621,16 +631,227 @@
             "versions": "EQ(*)"
         },
         {
+            "action": "get incident",
+            "identifier": "get_incident",
+            "description": "Get information about an incident",
+            "verbose": "",
+            "type": "investigate",
+            "read_only": true,
+            "parameters": {
+                "incident_number": {
+                    "description": "Incident number. Example: 5 for INC-5",
+                    "data_type": "numeric",
+                    "required": true,
+                    "primary": true,
+                    "contains": [
+                        "preempt incident id"
+                    ],
+                    "order": 0
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.lifeCycleStage",
+                    "data_type": "string",
+                    "example_values": [
+                        "NEW"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.endTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2019-07-23T00:58:24.009Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.severity",
+                    "data_type": "string",
+                    "example_values": [
+                        "MEDIUM"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.markedAsRead",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.comments.*.text",
+                    "data_type": "string",
+                    "example_values": [
+                        "This is suspicious"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.comments.*.author.username",
+                    "data_type": "string",
+                    "example_values": [
+                        "admin"
+                    ],
+                    "contains": [
+                        "preempt user name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.comments.*.author.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "LOCAL"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.comments.*.author.displayName",
+                    "data_type": "string",
+                    "example_values": [
+                        "admin"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.comments.*.timestamp",
+                    "data_type": "string",
+                    "example_values": [
+                        "2019-07-19T00:00:54.979Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.alertEvents.*.endTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2019-07-18T20:41:59.999Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.alertEvents.*.endpointEntity",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.alertEvents.*.alertType",
+                    "data_type": "string",
+                    "example_values": [
+                        "ForbiddenCountryAlert"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.alertEvents.*.alertId",
+                    "data_type": "string",
+                    "example_values": [
+                        "6e4e2205-f1d4-455f-811d-01a20c4c0cb0"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.compromisedEntities.*.accounts.*.archived",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.compromisedEntities.*.accounts.*.enabled",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.compromisedEntities.*.accounts.*.dataSource",
+                    "data_type": "string",
+                    "example_values": [
+                        "ACTIVE_DIRECTORY"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.startTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2019-07-18T20:40:00.000Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.incidentId",
+                    "data_type": "string",
+                    "example_values": [
+                        "INC-7"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "POTENTIAL_RISKY_ACTIVITY"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Severity: MEDIUM"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.incident_number",
+                    "data_type": "numeric",
+                    "contains": [
+                        "preempt incident id"
+                    ],
+                    "example_values": [
+                        7
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.severity",
+                    "data_type": "string",
+                    "example_values": [
+                        "MEDIUM"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
+            "render": {
+                "type": "custom",
+                "width": 10,
+                "height": 15,
+                "view": "preempt_view.display_incident",
+                "title": "Incident Information"
+            },
+            "versions": "EQ(*)"
+        },
+        {
             "action": "update incident",
             "identifier": "update_incident",
-            "description": "Update an incident",
+            "description": "Update the incident state and/or add a comment to the incident",
             "verbose": "",
             "type": "investigate",
             "read_only": false,
             "parameters": {
-                "incident_id": {
-                    "description": "ID of incident",
-                    "data_type": "string",
+                "incident_number": {
+                    "description": "Incident number. Example: 5 for INC-5",
+                    "data_type": "numeric",
                     "required": true,
                     "primary": true,
                     "contains": [
@@ -638,12 +859,17 @@
                     ],
                     "order": 0
                 },
+                "ph_0": {
+                    "description": "Placeholder",
+                    "data_type": "ph",
+                    "required": false,
+                    "order": 1
+                },
                 "stage": {
-                    "description": "Stage to update incident to",
+                    "description": "Life cycle stage to update incident to",
                     "data_type": "string",
-                    "required": true,
+                    "required": false,
                     "primary": false,
-                    "contains": [],
                     "value_list": [
                         "NEW",
                         "IN_PROGRESS",
@@ -651,17 +877,122 @@
                         "FALSE_POSITIVE",
                         "RESOLVED"
                     ],
-                    "order": 1
+                    "order": 2
                 },
                 "reason": {
-                    "description": "Reason for updating incident",
+                    "description": "Reason for updating incident. This parameter is required if updating stage",
                     "data_type": "string",
-                    "required": true,
+                    "required": false,
                     "primary": false,
-                    "order": 2
+                    "order": 3
+                },
+                "comment": {
+                    "description": "Comment to add to incident",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": false,
+                    "order": 4
                 }
             },
-            "output": [],
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.setIncidentState.incident.lifeCycleStage",
+                    "data_type": "string",
+                    "example_values": [
+                        "NEW"
+                    ],
+                    "column_name": "Life Cycle Stage",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Status: Incident state is NEW",
+                        "Num comments: 2"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.incident_number",
+                    "data_type": "numeric",
+                    "contains": [
+                        "preempt incident id"
+                    ],
+                    "example_values": [
+                        5
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.reason",
+                    "data_type": "string",
+                    "example_values": [
+                        "Change to new"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.stage",
+                    "data_type": "string",
+                    "example_values": [
+                        "NEW"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "Incident state is NEW"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.addCommentToIncident.incident.comments.*.text",
+                    "data_type": "string",
+                    "example_values": [
+                        "Test from Phantom"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.addCommentToIncident.incident.comments.*.author.displayName",
+                    "data_type": "string",
+                    "example_values": [
+                        "token (API)"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.comment",
+                    "data_type": "string",
+                    "example_values": [
+                        "Test from Phantom 2"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.num_comments",
+                    "data_type": "numeric",
+                    "example_values": [
+                        2
+                    ]
+                }
+            ],
             "render": {
                 "type": "table"
             },
@@ -673,7 +1004,7 @@
             "description": "Get user activity from the specified number of hours ago",
             "verbose": "",
             "type": "investigate",
-            "read_only": false,
+            "read_only": true,
             "parameters": {
                 "username": {
                     "description": "Username to get activity of",
@@ -690,58 +1021,165 @@
                     "data_type": "string",
                     "required": true,
                     "primary": false,
+                    "default": "P-1D",
                     "order": 1
                 },
-                "hours": {
-                    "description": "Number of hours to search from start_time",
+                "types": {
+                    "description": "Comma separated list of types of events to return. All types of events returned if left blank",
                     "data_type": "string",
-                    "required": true,
+                    "required": false,
                     "primary": false,
                     "order": 2
+                },
+                "limit": {
+                    "description": "Number of results to return, or leave field blank to return all results",
+                    "data_type": "numeric",
+                    "required": false,
+                    "primary": false,
+                    "order": 3
                 }
             },
-            "output": [],
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.authenticationType",
+                    "data_type": "string",
+                    "example_values": [
+                        "SSO_LOGIN"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.eventSeverity",
+                    "data_type": "string",
+                    "example_values": [
+                        "NEUTRAL"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.eventType",
+                    "data_type": "string",
+                    "example_values": [
+                        "SUCCESSFUL_AUTHENTICATION"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.hostName",
+                    "data_type": "string",
+                    "contains": [
+                        "host name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.endpointEntity",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.userEntity.secondaryDisplayName",
+                    "data_type": "string",
+                    "example_values": [
+                        "CORP.CONTOSO.COM\\herman"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.userEntity.primaryDisplayName",
+                    "data_type": "string",
+                    "example_values": [
+                        "Herman Edwards"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.timestamp",
+                    "data_type": "string",
+                    "example_values": [
+                        "2019-07-18T20:30:34.126Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.eventLabel",
+                    "data_type": "string",
+                    "example_values": [
+                        "SSO Login (Okta)"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ipAddress",
+                    "data_type": "string",
+                    "example_values": [
+                        "12.196.122.120"
+                    ],
+                    "contains": [
+                        "ip"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Num results: 5"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.username",
+                    "data_type": "string",
+                    "example_values": [
+                        "herman"
+                    ],
+                    "contains": [
+                        "preempt user name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.start_time",
+                    "data_type": "string",
+                    "example_values": [
+                        "P-2W"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.limit",
+                    "data_type": "numeric",
+                    "example_values": [
+                        5
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.types",
+                    "data_type": "string",
+                    "example_values": [
+                        "SUCCESSFUL_AUTHENTICATION, FAILED_AUTHENTICATION, ENTITY_WATCHED, ACCOUNT_CREATED"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.num_results",
+                    "data_type": "numeric",
+                    "example_values": [
+                        5
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
             "render": {
                 "type": "table"
             },
-            "versions": "EQ(*)"
-        },
-        {
-            "action": "on poll",
-            "description": "Ingest tickets from JIRA",
-            "type": "ingest",
-            "identifier": "on_poll",
-            "read_only": true,
-            "parameters": {
-                "start_time": {
-                    "data_type": "numeric",
-                    "description": "Parameter ignored in this app",
-                    "order": 0
-                },
-                "end_time": {
-                    "data_type": "numeric",
-                    "description": "Parameter ignored in this app",
-                    "order": 1
-                },
-                "container_id": {
-                    "data_type": "string",
-                    "description": "Parameter ignored in this app",
-                    "order": 2
-                },
-                "container_count": {
-                    "data_type": "numeric",
-                    "description": "Maximum number of tickets ingest during poll now",
-                    "required": false,
-                    "default": 1,
-                    "order": 3
-                },
-                "artifact_count": {
-                    "data_type": "numeric",
-                    "description": "Parameter ignored in this app",
-                    "order": 4
-                }
-            },
-            "output": [],
             "versions": "EQ(*)"
         }
     ]

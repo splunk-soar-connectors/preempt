@@ -10,7 +10,7 @@
 {% block widget_content %} <!-- Main Start Block -->
 
 <!-- File: display_user_attributes.html
-  Copyright (c) 2018-2019 Splunk Inc.
+  Copyright (c) 2019 Splunk Inc.
 
   SPLUNK CONFIDENTIAL - Use or disclosure of this material in whole or in part
   without a valid written license from Splunk Inc. is PROHIBITED.
@@ -77,7 +77,10 @@
       <table class="wf-table-horizontal">
         <tr>
           <th>Entity ID</th>
-          <td>{{ result.data.0.entityId }}</td>
+          <td><a href="javascript:;" onclick="context_menu(this, [{'contains': ['preempt entity id'], 'value': '{{ result.data.0.entityId }}' }], 0, {{ container.id }}, null, false);">
+              {{ result.data.0.entityId }}
+              &nbsp;<span class="fa fa-caret-down" style="font-size: smaller;"></span>
+          </a></td>
         </tr>
         <tr>
           <th>Primary Display Name</th>
@@ -145,7 +148,10 @@
           </tr>
           {% for item in result.data.0.emailAddresses %}
             <tr>
-              <td>{{ item }}</td>
+              <td><a href="javascript:;" onclick="context_menu(this, [{'contains': ['email'], 'value': '{{ item }}' }], 0, {{ container.id }}, null, false);">
+                  {{ item }}
+                  &nbsp;<span class="fa fa-caret-down" style="font-size: smaller;"></span>
+              </a></td>
             </tr>
           {% endfor %}
         </table>
