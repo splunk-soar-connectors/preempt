@@ -13,6 +13,7 @@ import requests
 import json
 from bs4 import BeautifulSoup
 
+import copy
 import time
 from datetime import datetime
 
@@ -248,6 +249,7 @@ class PreemptConnector(BaseConnector):
             action_result.add_data({ 'riskScore': 'Unavailable' })
             action_result.add_data({ 'primaryDisplayName': 'Unavailable' })
             summary['result'] = "Username and domain combination not found"
+            return action_result.set_status(phantom.APP_ERROR)
 
         # Return success, no need to set the message, only the status
         # BaseConnector will create a textual message based off of the summary dictionary
@@ -260,18 +262,34 @@ class PreemptConnector(BaseConnector):
         # Add an action result object to self (BaseConnector) to represent the action for this param
         action_result = self.add_action_result(ActionResult(dict(param)))
 
+        types = param.get('types')
+        invalid_types = list()
+        if types is None:
+            types = "types: {}".format(TIMELINE_EVENT_TYPES)
+        else:
+            types = [i.strip().upper() for i in types.split(',')]
+            types_list = copy.deepcopy(types)
+            for item in types_list:
+                if item not in TIMELINE_EVENT_TYPES_LIST:
+                    invalid_types.append(item)
+                    types.remove(item)
+                    # Remove the invalid types, but still query on the rest of the valid ones
+            if len(types) == 0:
+                return action_result.set_status(phantom.APP_ERROR, "All types provided are invalid. Refer to Preempt TimelineEventType API documentation for valid types")
+            types = "types: {}".format(types).replace("'", "")
+
         while True:
 
             username = param['username']
             start_time = param['start_time']
-            types = param.get('types')
-            if types is not None:
-                types = [i.strip().upper() for i in types.split(',')]
-                types = "types: {}".format(types).replace("'", "")
 
             limit = param.get('limit', None)
             if limit is None:
                 result_limit = 1000  # Minimize the number of REST calls made by using max limit
+            elif bool(limit) is True and int(limit) == 0:
+                return action_result.set_status(phantom.APP_ERROR, "Limit must be greater than 0")
+            elif bool(limit) is True and int(limit) > 1000:
+                return action_result.set_status(phantom.APP_ERROR, "Limit cannot be greater than 1000")
             else:
                 result_limit = int(limit)
 
@@ -326,9 +344,9 @@ class PreemptConnector(BaseConnector):
             result = response.get('data', {}).get('timeline', {})
             nodes = result.get('nodes', [])
 
-            if limit is not None and len(action_result.get_data()) + len(nodes) > int(limit):
+            if limit is not None and len(action_result.get_data()) + len(nodes) > int(result_limit):
                 for item in nodes:
-                    if int(limit) > len(action_result.get_data()):
+                    if int(result_limit) > len(action_result.get_data()):
                         action_result.add_data(item)
                     else:
                         break
@@ -343,6 +361,12 @@ class PreemptConnector(BaseConnector):
 
         summary = action_result.update_summary({})
         summary['num_results'] = len(action_result.get_data())
+
+        if len(invalid_types) == 1:
+            summary['type_parameter_error'] = "{} is invalid and was not used in the query".format(invalid_types[0])
+        elif len(invalid_types) > 1:
+            types_formatted = ''.join(["and {}".format(item) if idx + 1 == len(invalid_types) else "{}, ".format(item) for idx, item in enumerate(invalid_types)])
+            summary['type_parameter_error'] = "{} are invalid and were not used in the query".format(types_formatted)
 
         # Return success, no need to set the message, only the status
         # BaseConnector will create a textual message based off of the summary dictionary
@@ -390,6 +414,7 @@ class PreemptConnector(BaseConnector):
         else:
             action_result.add_data({ 'riskScore': 'Unavailable' })
             summary['result'] = "Username and domain combination not found"
+            return action_result.set_status(phantom.APP_ERROR)
 
         # Return success, no need to set the message, only the status
         # BaseConnector will create a textual message based off of the summary dictionary
@@ -540,6 +565,10 @@ class PreemptConnector(BaseConnector):
             return action_result.get_status()
 
         result = response.get('data', {}).get('incident', {})
+
+        if result is None:
+            return action_result.set_status(phantom.APP_ERROR, "Incident not found")
+
         action_result.add_data(result)
 
         # Add a dictionary that is made up of the most important values from data into the summary
@@ -585,7 +614,7 @@ class PreemptConnector(BaseConnector):
             result = response.get('data', {})
             action_result.add_data(result)
 
-            summary['status'] = "Incident state is {}".format(stage)
+            summary['life_cycle_state'] = "Incident state is {}".format(stage)
 
         if comment:
             data_comment = '''mutation {{
@@ -611,9 +640,15 @@ class PreemptConnector(BaseConnector):
             action_result.add_data(result)
 
             summary['num_comments'] = len(result.get('addCommentToIncident', {}).get('incident', {}).get('comments', []))
+            summary['comment_status'] = "Comment successfully added to incident"
+
+        if not stage or not reason:
+            summary['life_cycle_state'] = "Life cycle stage not updated. Both stage and reason parameters must be included in action request"
+            if not comment:
+                return action_result.set_status(phantom.APP_ERROR, PREEMPT_INVALID_UPDATE_INCIDENT_PARAMS)
 
         if not stage and not reason and not comment:
-            return action_result.set_status(phantom.APP_ERROR, "At least one of either stage and reason OR comment parameters must be included in action request")
+            return action_result.set_status(phantom.APP_ERROR, PREEMPT_INVALID_UPDATE_INCIDENT_PARAMS)
 
         # Return success, no need to set the message, only the status
         # BaseConnector will create a textual message based off of the summary dictionary

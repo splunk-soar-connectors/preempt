@@ -1,12 +1,12 @@
 {
     "appid": "dd770b20-ce36-4c9a-afe6-1784ffaa4fd7",
     "name": "Preempt",
-    "description": "This app implements various user actions",
-    "type": "identity management",
+    "description": "This app implements various incident management and investigative actions",
+    "type": "devops",
     "product_vendor": "Preempt",
     "logo": "logo_preempt.svg",
     "logo_dark": "logo_preempt_dark.svg",
-    "product_name": "Platform",
+    "product_name": "Preempt Platform",
     "product_version_regex": ".*",
     "publisher": "Splunk",
     "license": "Copyright (c) 2019 Splunk Inc.",
@@ -47,10 +47,10 @@
     "actions": [
         {
             "action": "test connectivity",
-            "identifier": "test_connectivity",
             "description": "Validate the asset configuration for connectivity using supplied configuration",
             "verbose": "",
             "type": "test",
+            "identifier": "test_connectivity",
             "read_only": true,
             "parameters": {},
             "output": [],
@@ -66,24 +66,29 @@
             "parameters": {
                 "container_id": {
                     "description": "Parameter ignored in this app",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "order": 0
                 },
                 "start_time": {
                     "description": "Parameter ignored in this app",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "order": 1
                 },
                 "end_time": {
                     "description": "Parameter ignored in this app",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "order": 2
                 },
                 "container_count": {
                     "description": "Maximum number of events to query for",
                     "data_type": "numeric",
-                    "default": 100
+                    "default": 100,
+                    "order": 3
                 },
                 "artifact_count": {
                     "description": "Parameter ignored in this app",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "order": 4
                 }
             },
             "output": [],
@@ -91,10 +96,10 @@
         },
         {
             "action": "get user attributes",
-            "identifier": "get_user_attributes",
             "description": "Gets the attributes of a user",
             "verbose": "",
             "type": "investigate",
+            "identifier": "get_user_attributes",
             "read_only": true,
             "parameters": {
                 "username": {
@@ -291,10 +296,10 @@
         },
         {
             "action": "get user risk",
-            "identifier": "get_user_risk",
             "description": "Gets the risk of a user",
             "verbose": "",
             "type": "investigate",
+            "identifier": "get_user_risk",
             "read_only": true,
             "parameters": {
                 "username": {
@@ -356,7 +361,6 @@
                     "data_path": "action_result.parameter.domain",
                     "data_type": "string",
                     "example_values": [
-                        "CORP.CONTOSO.COMa",
                         "CORP.CONTOSO.COM"
                     ],
                     "contains": [
@@ -410,11 +414,10 @@
         },
         {
             "action": "watch user",
-            "identifier": "watch_user",
             "description": "Watch a user",
             "verbose": "",
-            "undo": "unwatch user",
             "type": "investigate",
+            "identifier": "watch_user",
             "read_only": false,
             "parameters": {
                 "username": {
@@ -521,11 +524,10 @@
         },
         {
             "action": "unwatch user",
-            "identifier": "unwatch_user",
             "description": "Stop watching a user",
             "verbose": "",
-            "undo": "watch user",
             "type": "investigate",
+            "identifier": "unwatch_user",
             "read_only": false,
             "parameters": {
                 "username": {
@@ -632,10 +634,10 @@
         },
         {
             "action": "get incident",
-            "identifier": "get_incident",
             "description": "Get information about an incident",
             "verbose": "",
             "type": "investigate",
+            "identifier": "get_incident",
             "read_only": true,
             "parameters": {
                 "incident_number": {
@@ -780,13 +782,6 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.data.*.incidentId",
-                    "data_type": "string",
-                    "example_values": [
-                        "INC-7"
-                    ]
-                },
-                {
                     "data_path": "action_result.data.*.type",
                     "data_type": "string",
                     "example_values": [
@@ -843,10 +838,10 @@
         },
         {
             "action": "update incident",
-            "identifier": "update_incident",
             "description": "Update the incident state and/or add a comment to the incident",
             "verbose": "",
             "type": "investigate",
+            "identifier": "update_incident",
             "read_only": false,
             "parameters": {
                 "incident_number": {
@@ -899,69 +894,15 @@
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "example_values": [
-                        "success"
+                        "success",
+                        "failed"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.setIncidentState.incident.lifeCycleStage",
                     "data_type": "string",
                     "example_values": [
-                        "NEW"
-                    ],
-                    "column_name": "Life Cycle Stage",
-                    "column_order": 0
-                },
-                {
-                    "data_path": "action_result.message",
-                    "data_type": "string",
-                    "example_values": [
-                        "Status: Incident state is NEW",
-                        "Num comments: 2"
-                    ]
-                },
-                {
-                    "data_path": "action_result.parameter.incident_number",
-                    "data_type": "numeric",
-                    "contains": [
-                        "preempt incident id"
-                    ],
-                    "example_values": [
-                        5
-                    ]
-                },
-                {
-                    "data_path": "action_result.parameter.reason",
-                    "data_type": "string",
-                    "example_values": [
-                        "Change to new"
-                    ]
-                },
-                {
-                    "data_path": "action_result.parameter.stage",
-                    "data_type": "string",
-                    "example_values": [
-                        "NEW"
-                    ]
-                },
-                {
-                    "data_path": "action_result.summary.status",
-                    "data_type": "string",
-                    "example_values": [
-                        "Incident state is NEW"
-                    ]
-                },
-                {
-                    "data_path": "summary.total_objects",
-                    "data_type": "numeric",
-                    "example_values": [
-                        1
-                    ]
-                },
-                {
-                    "data_path": "summary.total_objects_successful",
-                    "data_type": "numeric",
-                    "example_values": [
-                        1
+                        "IN_PROGRESS"
                     ]
                 },
                 {
@@ -979,17 +920,84 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Num comments: 8, Comment status: Comment successfully added to incident, Life cycle state: Incident state is IN_PROGRESS",
+                        "Life cycle state: Incident state is IN_PROGRESS",
+                        "At least one of either stage and reason OR comment parameters must be included in action request"
+                    ]
+                },
+                {
                     "data_path": "action_result.parameter.comment",
                     "data_type": "string",
                     "example_values": [
-                        "Test from Phantom 2"
+                        "I am looking into the incident"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.incident_number",
+                    "data_type": "string",
+                    "contains": [
+                        "preempt incident id"
+                    ],
+                    "example_values": [
+                        "5"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.reason",
+                    "data_type": "string",
+                    "example_values": [
+                        "This needs to be reviewed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.stage",
+                    "data_type": "string",
+                    "example_values": [
+                        "IN_PROGRESS"
                     ]
                 },
                 {
                     "data_path": "action_result.summary.num_comments",
                     "data_type": "numeric",
                     "example_values": [
-                        2
+                        8
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.comment_status",
+                    "data_type": "string",
+                    "example_values": [
+                        "Comment successfully added to incident"
+                    ],
+                    "column_name": "Comment Status",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.summary.life_cycle_state",
+                    "data_type": "string",
+                    "example_values": [
+                        "Incident state is IN_PROGRESS",
+                        "Life cycle stage not updated. Both stage and reason parameters must be included in action request"
+                    ],
+                    "column_name": "Life Cycle State",
+                    "column_order": 1
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1,
+                        0
                     ]
                 }
             ],
@@ -1000,10 +1008,10 @@
         },
         {
             "action": "get user activity",
-            "identifier": "get_user_activity",
             "description": "Get user activity from the specified number of hours ago",
             "verbose": "",
             "type": "investigate",
+            "identifier": "get_user_activity",
             "read_only": true,
             "parameters": {
                 "username": {
@@ -1059,14 +1067,18 @@
                     "data_type": "string",
                     "example_values": [
                         "NEUTRAL"
-                    ]
+                    ],
+                    "column_order": 1,
+                    "column_name": "Event Severity"
                 },
                 {
                     "data_path": "action_result.data.*.eventType",
                     "data_type": "string",
                     "example_values": [
                         "SUCCESSFUL_AUTHENTICATION"
-                    ]
+                    ],
+                    "column_order": 2,
+                    "column_name": "Event Type"
                 },
                 {
                     "data_path": "action_result.data.*.hostName",
@@ -1083,14 +1095,14 @@
                     "data_path": "action_result.data.*.userEntity.secondaryDisplayName",
                     "data_type": "string",
                     "example_values": [
-                        "CORP.CONTOSO.COM\\herman"
+                        "CORP.CONTOSO.COM\\test_username"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.userEntity.primaryDisplayName",
                     "data_type": "string",
                     "example_values": [
-                        "Herman Edwards"
+                        "TestFirst TestLast"
                     ]
                 },
                 {
@@ -1098,14 +1110,18 @@
                     "data_type": "string",
                     "example_values": [
                         "2019-07-18T20:30:34.126Z"
-                    ]
+                    ],
+                    "column_order": 0,
+                    "column_name": "Timestamp"
                 },
                 {
                     "data_path": "action_result.data.*.eventLabel",
                     "data_type": "string",
                     "example_values": [
                         "SSO Login (Okta)"
-                    ]
+                    ],
+                    "column_order": 3,
+                    "column_name": "Event Label"
                 },
                 {
                     "data_path": "action_result.data.*.ipAddress",
@@ -1128,7 +1144,7 @@
                     "data_path": "action_result.parameter.username",
                     "data_type": "string",
                     "example_values": [
-                        "herman"
+                        "test_username"
                     ],
                     "contains": [
                         "preempt user name"
