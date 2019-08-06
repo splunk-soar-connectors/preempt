@@ -59,8 +59,11 @@ class PreemptConnector(BaseConnector):
         except:
             error_text = "Cannot parse error details"
 
-        message = "Status Code: {0}. Data from server:\n{1}\n".format(status_code,
-                error_text)
+        if status_code == 404:
+            message = "Status Code: {0}. Error while connecting to the server.".format(status_code)
+        else:
+            message = "Status Code: {0}. Data from server:\n{1}\n".format(status_code,
+                error_text.encode('ascii', 'ignore').strip())
 
         message = message.replace(u'{', '{{').replace(u'}', '}}')
 
