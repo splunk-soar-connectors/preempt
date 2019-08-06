@@ -848,7 +848,7 @@
             "action": "update incident",
             "description": "Update the incident state and/or add a comment to the incident",
             "verbose": "",
-            "type": "investigate",
+            "type": "generic",
             "identifier": "update_incident",
             "read_only": false,
             "parameters": {
