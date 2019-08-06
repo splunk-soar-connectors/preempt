@@ -130,7 +130,8 @@
                     "required": true,
                     "primary": false,
                     "contains": [
-                        "domain"
+                        "domain",
+                        "url"
                     ],
                     "order": 2
                 }
@@ -253,7 +254,8 @@
                         "CORP.CONTOSO.COM"
                     ],
                     "contains": [
-                        "domain"
+                        "domain",
+                        "url"
                     ]
                 },
                 {
@@ -318,7 +320,8 @@
                     "required": true,
                     "primary": false,
                     "contains": [
-                        "domain"
+                        "domain",
+                        "url"
                     ],
                     "order": 1
                 }
@@ -364,7 +367,8 @@
                         "CORP.CONTOSO.COM"
                     ],
                     "contains": [
-                        "domain"
+                        "domain",
+                        "url"
                     ]
                 },
                 {
@@ -436,7 +440,8 @@
                     "required": true,
                     "primary": false,
                     "contains": [
-                        "domain"
+                        "domain",
+                        "url"
                     ],
                     "order": 1
                 }
@@ -489,7 +494,8 @@
                         "CORP.CONTOSO.COM"
                     ],
                     "contains": [
-                        "domain"
+                        "domain",
+                        "url"
                     ]
                 },
                 {
@@ -546,7 +552,8 @@
                     "required": true,
                     "primary": false,
                     "contains": [
-                        "domain"
+                        "domain",
+                        "url"
                     ],
                     "order": 1
                 }
@@ -599,7 +606,8 @@
                         "CORP.CONTOSO.COM"
                     ],
                     "contains": [
-                        "domain"
+                        "domain",
+                        "url"
                     ]
                 },
                 {
