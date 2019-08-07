@@ -83,6 +83,9 @@ class PreemptConnector(BaseConnector):
         message = "Error from server. Status Code: {0} Data from server: {1}".format(
                 r.status_code, r.text.replace(u'{', '{{').replace(u'}', '}}'))
 
+        if "Method Not Allowed" in message:
+            message = "Method not allowed"
+
         return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
 
     def _process_response(self, r, action_result):
@@ -454,6 +457,7 @@ class PreemptConnector(BaseConnector):
         summary = action_result.update_summary({})
         if len(result.get('updatedEntities', [])) == 0:
             summary['result'] = "No entities updated"
+            return action_result.set_status(phantom.APP_ERROR)
         else:
             summary['result'] = "{} was added to the watch list".format(result['updatedEntities'][0]['primaryDisplayName'])
 
@@ -494,6 +498,7 @@ class PreemptConnector(BaseConnector):
         summary = action_result.update_summary({})
         if len(result.get('updatedEntities', [])) == 0:
             summary['result'] = "No entities updated"
+            return action_result.set_status(phantom.APP_ERROR)
         else:
             summary['result'] = "{} was removed from the watch list".format(result['updatedEntities'][0]['primaryDisplayName'])
 

@@ -844,7 +844,7 @@
         {
             "action": "update incident",
             "description": "Update the incident state and/or add a comment to the incident",
-            "verbose": "",
+            "verbose": "An incident's stage cannot be changed from \"resolved\" to another stage.",
             "type": "generic",
             "identifier": "update_incident",
             "read_only": false,
