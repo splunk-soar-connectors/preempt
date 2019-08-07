@@ -55,15 +55,13 @@ class PreemptConnector(BaseConnector):
             error_text = soup.text
             split_lines = error_text.split('\n')
             split_lines = [x.strip() for x in split_lines if x.strip()]
-            error_text = '\n'.join(split_lines)
+            error_text = '\n'.join(split_lines).encode('ascii', 'ignore').strip()
         except:
             error_text = "Cannot parse error details"
 
-        if status_code == 404:
-            message = "Status Code: {0}. Error while connecting to the server.".format(status_code)
-        else:
-            message = "Status Code: {0}. Data from server:\n{1}\n".format(status_code,
-                error_text.encode('ascii', 'ignore').strip())
+        if error_text:
+            self.debug_print("Status Code: {0}. Data from server: {1}".format(status_code, error_text))
+            message = "Error while connecting to the server."
 
         message = message.replace(u'{', '{{').replace(u'}', '}}')
 
@@ -246,7 +244,7 @@ class PreemptConnector(BaseConnector):
 
         if len(result) > 0:
             action_result.add_data(result[0])
-            summary['risk_score'] = result[0].get('riskScore')
+            summary['risk_score'] = float(result[0].get('riskScore')) * 10
             summary['primary_display_name'] = result[0].get('primaryDisplayName')
         else:
             action_result.add_data({ 'riskScore': 'Unavailable' })
@@ -413,7 +411,7 @@ class PreemptConnector(BaseConnector):
 
         if len(result) > 0:
             action_result.add_data(result[0])
-            summary['risk_score'] = result[0].get('riskScore')
+            summary['risk_score'] = float(result[0].get('riskScore')) * 10
         else:
             action_result.add_data({ 'riskScore': 'Unavailable' })
             summary['result'] = "Username and domain combination not found"

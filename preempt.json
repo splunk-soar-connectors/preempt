@@ -708,9 +708,6 @@
                     "data_type": "string",
                     "example_values": [
                         "admin"
-                    ],
-                    "contains": [
-                        "preempt user name"
                     ]
                 },
                 {
