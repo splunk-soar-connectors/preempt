@@ -102,17 +102,17 @@
             "identifier": "get_user_attributes",
             "read_only": true,
             "parameters": {
-                "username": {
-                    "description": "Username or Attribute value to match",
+                "attribute_value": {
+                    "description": "Username or Attribute value to match. If using secondaryDisplayName attribute, escape the backslash between domain and name",
                     "data_type": "string",
                     "required": true,
                     "primary": true,
                     "contains": [
                         "preempt user name"
                     ],
-                    "order": 0
+                    "order": 1
                 },
-                "attribute": {
+                "attribute_type": {
                     "description": "Attribute name to match",
                     "data_type": "string",
                     "required": true,
@@ -122,7 +122,7 @@
                         "primaryDisplayName",
                         "secondaryDisplayName"
                     ],
-                    "order": 1
+                    "order": 0
                 },
                 "domain": {
                     "description": "Domain of user",
@@ -234,7 +234,9 @@
                     "data_path": "action_result.parameter.username",
                     "data_type": "string",
                     "example_values": [
-                        "administrator"
+                        "administrator",
+                        "CORP.CONTOSO.COM\\\\Administrator",
+                        "The Administrator"
                     ],
                     "contains": [
                         "preempt user name"
@@ -420,7 +422,7 @@
             "action": "watch user",
             "description": "Watch a user",
             "verbose": "",
-            "type": "investigate",
+            "type": "contain",
             "identifier": "watch_user",
             "read_only": false,
             "parameters": {
@@ -532,7 +534,7 @@
             "action": "unwatch user",
             "description": "Stop watching a user",
             "verbose": "",
-            "type": "investigate",
+            "type": "correct",
             "identifier": "unwatch_user",
             "read_only": false,
             "parameters": {

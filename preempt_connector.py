@@ -86,6 +86,9 @@ class PreemptConnector(BaseConnector):
         if "Method Not Allowed" in message:
             message = "Method not allowed"
 
+        if "Conflict" in message:
+            message = "Incident not found"
+
         return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
 
     def _process_response(self, r, action_result):
@@ -185,8 +188,8 @@ class PreemptConnector(BaseConnector):
         # Add an action result object to self (BaseConnector) to represent the action for this param
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        username = param['username']
-        attribute = param['attribute']
+        username = param['attribute_value']
+        attribute = param['attribute_type']
         domain = param['domain']
 
         attribute_type = ATTRIBUTE_TYPES.get(attribute)
@@ -198,7 +201,7 @@ class PreemptConnector(BaseConnector):
                     first: 1)
             {{
                 nodes {{
-                    entityId
+                    entityId g
                     type
 
                     primaryDisplayName
@@ -252,7 +255,7 @@ class PreemptConnector(BaseConnector):
         else:
             action_result.add_data({ 'riskScore': 'Unavailable' })
             action_result.add_data({ 'primaryDisplayName': 'Unavailable' })
-            summary['result'] = "Username and domain combination not found"
+            summary['result'] = "Attribute type, attribute value, and domain combination not found"
             return action_result.set_status(phantom.APP_ERROR)
 
         # Return success, no need to set the message, only the status
@@ -290,7 +293,7 @@ class PreemptConnector(BaseConnector):
             limit = param.get('limit', None)
             if limit is None:
                 result_limit = 1000  # Minimize the number of REST calls made by using max limit
-            elif bool(limit) is True and int(limit) == 0:
+            elif bool(limit) is True and int(limit) <= 0:
                 return action_result.set_status(phantom.APP_ERROR, "Limit must be greater than 0")
             elif bool(limit) is True and int(limit) > 1000:
                 return action_result.set_status(phantom.APP_ERROR, "Limit cannot be greater than 1000")
@@ -363,8 +366,12 @@ class PreemptConnector(BaseConnector):
             else:
                 break
 
+        num_results = len(action_result.get_data())
+        if num_results == 0:
+            return action_result.set_status(phantom.APP_ERROR, "No activity found for user")
+
         summary = action_result.update_summary({})
-        summary['num_results'] = len(action_result.get_data())
+        summary['num_results'] = num_results
 
         if len(invalid_types) == 1:
             summary['type_parameter_error'] = "{} is invalid and was not used in the query".format(invalid_types[0])
@@ -890,15 +897,16 @@ class PreemptConnector(BaseConnector):
         self.save_progress("Using URL: {}".format(self.platform_address))
         self.save_progress(phantom.APP_PROG_CONNECTING_TO_ELLIPSES, self.platform_address)
 
-        # Get config
+        # Get config and state
+        state = self.load_state()
         config = self.get_config()
 
         # Add an action result object to self (BaseConnector) to represent the action for this param
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         # Get time from last poll, save now as time for this poll
-        last_time = self._state.get('last_time', 0.0)
-        self._state['last_time'] = time.time()
+        last_time = state.get('last_time', 0.0)
+        state['last_time'] = time.time()
         last_converted_time = datetime.fromtimestamp(last_time)
 
         data = '''{{
@@ -950,8 +958,8 @@ class PreemptConnector(BaseConnector):
             max_incidents = param.get(phantom.APP_JSON_CONTAINER_COUNT)
 
         # If it's the first poll, don't filter based on update time
-        elif (self._state.get('first_run', True)):
-            self._state['first_run'] = False
+        elif (state.get('first_run', True)):
+            state['first_run'] = False
             after = ''
             updated_after = 'updatedAfter: "{}"'.format(last_converted_time)
             max_incidents = int(config.get('first_run_max_incidents', 1000))
@@ -960,11 +968,11 @@ class PreemptConnector(BaseConnector):
         else:
             after = ''
             updated_time = datetime.fromtimestamp(last_time + .01)
-            self.save_progress("last_time={}    updated_time={}".format(last_time, updated_time))
             updated_after = 'updatedAfter: "{}"'.format(updated_time)
             max_incidents = int(config.get('max_incidents', 1000))
 
         incidents = list()
+        new_last_time = ""
         # Make rest call using query
         while True:
             query = data.format(after=after, updated_after=updated_after, max_incidents=max_incidents)
@@ -984,7 +992,8 @@ class PreemptConnector(BaseConnector):
                 for item in tmp_incidents:
                     if max_incidents > len(incidents):
                         incidents.append(item)
-                        self._state['last_time'] = item['endTime']  # This will be converted to epoch below
+                        if not self.is_poll_now():
+                            new_last_time = item['endTime']  # This will be converted to epoch below
                     else:
                         break
                 else:
@@ -992,6 +1001,7 @@ class PreemptConnector(BaseConnector):
                 break
             else:
                 incidents += tmp_incidents
+                new_last_time = tmp_incidents[-1]['endTime']
 
             has_next_page = response.get('data', {}).get('incidents', {}).get('pageInfo', {}).get('hasNextPage', False)
             if has_next_page is True:
@@ -1009,19 +1019,19 @@ class PreemptConnector(BaseConnector):
                 failed += 1
 
         # Convert last_time to epoch
-        try:
-            utc_time = datetime.strptime(str(self._state['last_time']), "%Y-%m-%dT%H:%M:%S.%fZ")
-            epoch_time = (utc_time - datetime(1970, 1, 1)).total_seconds()
-            self._state['last_time'] = epoch_time
-        except:
-            pass
-            # Already in epoch time
+        if not self.is_poll_now() and incidents:
+            try:
+                utc_time = datetime.strptime(str(new_last_time), "%Y-%m-%dT%H:%M:%S.%fZ")
+                epoch_time = (utc_time - datetime(1970, 1, 1)).total_seconds()
+                state['last_time'] = epoch_time
+            except:
+                state['last_time'] = str(new_last_time)
 
-        # Check for save_state API, use it if it is present
-        self.save_state(self._state)
+            # Set self._state to state. It will be saved in finalize()
+            self._state = state
 
-        if failed:
-            return action_result.set_status(phantom.APP_ERROR, PREEMPT_ERR_FAILURES)
+            if failed:
+                return action_result.set_status(phantom.APP_ERROR, PREEMPT_ERR_FAILURES)
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
