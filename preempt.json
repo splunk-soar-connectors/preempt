@@ -103,7 +103,7 @@
             "read_only": true,
             "parameters": {
                 "username": {
-                    "description": "Username or Attribute value to match",
+                    "description": "Username or Attribute value to match. If using secondaryDisplayName attribute, escape the backslash between domain and name",
                     "data_type": "string",
                     "required": true,
                     "primary": true,
@@ -234,7 +234,9 @@
                     "data_path": "action_result.parameter.username",
                     "data_type": "string",
                     "example_values": [
-                        "administrator"
+                        "administrator",
+                        "CORP.CONTOSO.COM\\\\Administrator",
+                        "The Administrator"
                     ],
                     "contains": [
                         "preempt user name"
