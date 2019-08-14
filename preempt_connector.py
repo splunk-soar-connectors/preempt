@@ -188,8 +188,8 @@ class PreemptConnector(BaseConnector):
         # Add an action result object to self (BaseConnector) to represent the action for this param
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        username = param['username']
-        attribute = param['attribute']
+        username = param['attribute_value']
+        attribute = param['attribute_type']
         domain = param['domain']
 
         attribute_type = ATTRIBUTE_TYPES.get(attribute)
@@ -255,7 +255,7 @@ class PreemptConnector(BaseConnector):
         else:
             action_result.add_data({ 'riskScore': 'Unavailable' })
             action_result.add_data({ 'primaryDisplayName': 'Unavailable' })
-            summary['result'] = "Username and domain combination not found"
+            summary['result'] = "Attribute type, attribute value, and domain combination not found"
             return action_result.set_status(phantom.APP_ERROR)
 
         # Return success, no need to set the message, only the status

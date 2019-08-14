@@ -102,7 +102,7 @@
             "identifier": "get_user_attributes",
             "read_only": true,
             "parameters": {
-                "username": {
+                "attribute_value": {
                     "description": "Username or Attribute value to match. If using secondaryDisplayName attribute, escape the backslash between domain and name",
                     "data_type": "string",
                     "required": true,
@@ -110,9 +110,9 @@
                     "contains": [
                         "preempt user name"
                     ],
-                    "order": 0
+                    "order": 1
                 },
-                "attribute": {
+                "attribute_type": {
                     "description": "Attribute name to match",
                     "data_type": "string",
                     "required": true,
@@ -122,7 +122,7 @@
                         "primaryDisplayName",
                         "secondaryDisplayName"
                     ],
-                    "order": 1
+                    "order": 0
                 },
                 "domain": {
                     "description": "Domain of user",
