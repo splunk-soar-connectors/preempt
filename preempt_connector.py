@@ -366,8 +366,12 @@ class PreemptConnector(BaseConnector):
             else:
                 break
 
+        num_results = len(action_result.get_data())
+        if num_results == 0:
+            return action_result.set_status(phantom.APP_ERROR, "No activity found for user")
+
         summary = action_result.update_summary({})
-        summary['num_results'] = len(action_result.get_data())
+        summary['num_results'] = num_results
 
         if len(invalid_types) == 1:
             summary['type_parameter_error'] = "{} is invalid and was not used in the query".format(invalid_types[0])
