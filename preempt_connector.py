@@ -293,7 +293,7 @@ class PreemptConnector(BaseConnector):
             limit = param.get('limit', None)
             if limit is None:
                 result_limit = 1000  # Minimize the number of REST calls made by using max limit
-            elif bool(limit) is True and int(limit) == 0:
+            elif bool(limit) is True and int(limit) <= 0:
                 return action_result.set_status(phantom.APP_ERROR, "Limit must be greater than 0")
             elif bool(limit) is True and int(limit) > 1000:
                 return action_result.set_status(phantom.APP_ERROR, "Limit cannot be greater than 1000")
@@ -963,7 +963,6 @@ class PreemptConnector(BaseConnector):
         else:
             after = ''
             updated_time = datetime.fromtimestamp(last_time + .01)
-            self.save_progress("last_time={}    updated_time={}".format(last_time, updated_time))
             updated_after = 'updatedAfter: "{}"'.format(updated_time)
             max_incidents = int(config.get('max_incidents', 1000))
 
@@ -987,7 +986,8 @@ class PreemptConnector(BaseConnector):
                 for item in tmp_incidents:
                     if max_incidents > len(incidents):
                         incidents.append(item)
-                        self._state['last_time'] = item['endTime']  # This will be converted to epoch below
+                        if not self.is_poll_now():
+                            self._state['last_time'] = item['endTime']  # This will be converted to epoch below
                     else:
                         break
                 else:
