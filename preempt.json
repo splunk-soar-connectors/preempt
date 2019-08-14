@@ -420,7 +420,7 @@
             "action": "watch user",
             "description": "Watch a user",
             "verbose": "",
-            "type": "investigate",
+            "type": "contain",
             "identifier": "watch_user",
             "read_only": false,
             "parameters": {
@@ -532,7 +532,7 @@
             "action": "unwatch user",
             "description": "Stop watching a user",
             "verbose": "",
-            "type": "investigate",
+            "type": "correct",
             "identifier": "unwatch_user",
             "read_only": false,
             "parameters": {

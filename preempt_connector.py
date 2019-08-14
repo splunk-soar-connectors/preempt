@@ -86,6 +86,9 @@ class PreemptConnector(BaseConnector):
         if "Method Not Allowed" in message:
             message = "Method not allowed"
 
+        if "Conflict" in message:
+            message = "Incident not found"
+
         return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
 
     def _process_response(self, r, action_result):
