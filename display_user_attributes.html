@@ -106,10 +106,8 @@
 
       <br>
 
+      <h3 class="wf-h3-style">Risk Factors</h3>
       <table class="wf-table-horizontal">
-        <tr>
-          <th>Risk Factors</th>
-        </tr>
         {% for item in result.data.0.riskFactors %}
           <tr>
             <td>{{ item.type }}</td>
@@ -118,10 +116,8 @@
       </table>
       <br>
 
+      <h3 class="wf-h3-style">Phone Numbers</h3>
       <table class="wf-table-horizontal">
-        <tr>
-          <th>Phone Numbers</th>
-        </tr>
         {% for item in result.data.0.phoneNumbers %}
           <tr>
             <td>{{ item }}</td>
@@ -130,10 +126,8 @@
       </table>
       <br>
 
+      <h3 class="wf-h3-style">Owned Endpoints</h3>
       <table class="wf-table-horizontal">
-        <tr>
-          <th>Owned Endpoints</th>
-        </tr>
         {% for item in result.data.0.ownedEndpoints %}
           <tr>
             <td>{{ item }}</td>
@@ -142,10 +136,8 @@
       </table>
       <br>
 
+      <h3 class="wf-h3-style">Email Addresses</h3>
       <table class="wf-table-horizontal">
-          <tr>
-            <th>Email Addresses</th>
-          </tr>
           {% for item in result.data.0.emailAddresses %}
             <tr>
               <td><a href="javascript:;" onclick="context_menu(this, [{'contains': ['email'], 'value': '{{ item }}' }], 0, {{ container.id }}, null, false);">
