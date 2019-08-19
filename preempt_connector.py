@@ -201,7 +201,7 @@ class PreemptConnector(BaseConnector):
                     first: 1)
             {{
                 nodes {{
-                    entityId g
+                    entityId
                     type
 
                     primaryDisplayName
