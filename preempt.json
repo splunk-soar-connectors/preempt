@@ -246,7 +246,9 @@
                     "data_path": "action_result.parameter.attribute_type",
                     "data_type": "string",
                     "example_values": [
-                        "samAccountName"
+                        "samAccountName",
+                        "primaryDisplayName",
+                        "secondaryDisplayName"
                     ]
                 },
                 {
