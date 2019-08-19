@@ -231,7 +231,7 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.parameter.username",
+                    "data_path": "action_result.parameter.attribute_value",
                     "data_type": "string",
                     "example_values": [
                         "administrator",
@@ -243,7 +243,7 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.parameter.attribute",
+                    "data_path": "action_result.parameter.attribute_type",
                     "data_type": "string",
                     "example_values": [
                         "samAccountName"
