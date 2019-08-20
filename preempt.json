@@ -424,8 +424,9 @@
             "action": "watch user",
             "description": "Watch a user",
             "verbose": "",
-            "type": "contain",
+            "type": "correct",
             "identifier": "watch_user",
+            "undo": "unwatch user",
             "read_only": false,
             "parameters": {
                 "username": {
@@ -536,8 +537,9 @@
             "action": "unwatch user",
             "description": "Stop watching a user",
             "verbose": "",
-            "type": "correct",
+            "type": "contain",
             "identifier": "unwatch_user",
+            "undo": "watch user",
             "read_only": false,
             "parameters": {
                 "username": {
