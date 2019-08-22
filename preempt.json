@@ -42,6 +42,13 @@
             "description": "Maximum incidents for scheduled polling",
             "required": false,
             "default": 100
+        },
+        "verify_server_cert": {
+            "description": "Verify server certificate",
+            "data_type": "boolean",
+            "required": false,
+            "default": false,
+            "order": 4
         }
     },
     "actions": [
@@ -58,7 +65,6 @@
         {
             "action": "on poll",
             "description": "Ingest from Preempt",
-            "verbose": "The configured query is what will be used during ingestion. If you only wish to show certain fields, then you can specify these as a comma separated list in the configuration. If left unspecified, all available fields will be added to each artifact. When limiting the amount of events to ingest, it will ingest the most recent events. By specifying the max count to 0, all events will be ingested.<br><br>",
             "type": "ingest",
             "identifier": "on_poll",
             "read_only": true,
@@ -235,7 +241,7 @@
                     "data_path": "action_result.data.*.secondaryDisplayName",
                     "data_type": "string",
                     "example_values": [
-                        "CORP.TEST.COM\\Administrator"
+                        "CORP.TEST.COM\\\\Administrator"
                     ]
                 },
                 {
@@ -488,7 +494,7 @@
                     "data_path": "action_result.data.*.updatedEntities.*.secondaryDisplayName",
                     "data_type": "string",
                     "example_values": [
-                        "CORP.TEST.COM\\Administrator"
+                        "CORP.TEST.COM\\\\Administrator"
                     ]
                 },
                 {
@@ -600,7 +606,7 @@
                     "data_path": "action_result.data.*.updatedEntities.*.secondaryDisplayName",
                     "data_type": "string",
                     "example_values": [
-                        "CORP.TEST.COM\\Administrator"
+                        "CORP.TEST.COM\\\\Administrator"
                     ]
                 },
                 {
@@ -985,7 +991,7 @@
                     "example_values": [
                         "Num comments: 8, Comment status: Comment successfully added to incident, Life cycle state: Incident state is IN_PROGRESS",
                         "Life cycle state: Incident state is IN_PROGRESS",
-                        "At least one of either stage and reason OR comment parameters must be included in action request"
+                        "At least one of either stage and reason OR comment parameters must be included in the action request"
                     ]
                 },
                 {
@@ -1161,7 +1167,7 @@
                     "data_path": "action_result.data.*.userEntity.secondaryDisplayName",
                     "data_type": "string",
                     "example_values": [
-                        "CORP.TEST.COM\\test_username"
+                        "CORP.TEST.COM\\\\test_username"
                     ]
                 },
                 {
