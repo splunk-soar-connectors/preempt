@@ -42,13 +42,19 @@
             "description": "Maximum incidents for scheduled polling",
             "required": false,
             "default": 100
+        },
+        "verify_server_cert": {
+            "description": "Verify server certificate",
+            "data_type": "boolean",
+            "required": false,
+            "default": false,
+            "order": 4
         }
     },
     "actions": [
         {
             "action": "test connectivity",
             "description": "Validate the asset configuration for connectivity using supplied configuration",
-            "verbose": "",
             "type": "test",
             "identifier": "test_connectivity",
             "read_only": true,
@@ -59,7 +65,6 @@
         {
             "action": "on poll",
             "description": "Ingest from Preempt",
-            "verbose": "The configured query is what will be used during ingestion. If you only wish to show certain fields, then you can specify these as a comma separated list in the configuration. If left unspecified, all available fields will be added to each artifact. When limiting the amount of events to ingest, it will ingest the most recent events. By specifying the max count to 0, all events will be ingested.<br><br>",
             "type": "ingest",
             "identifier": "on_poll",
             "read_only": true,
@@ -97,13 +102,13 @@
         {
             "action": "get user attributes",
             "description": "Gets the attributes of a user",
-            "verbose": "",
             "type": "investigate",
             "identifier": "get_user_attributes",
             "read_only": true,
             "parameters": {
                 "attribute_value": {
                     "description": "Username or Attribute value to match. If using secondaryDisplayName attribute, escape the backslash between domain and name",
+                    "verbose": "If the domain is 'COPR.TEST.COM' and the user is 'xyz', the primary name would be 'The xyz', the secondary name would be 'CORP.TEST.COM\\xyz' and the samAccountName would be 'xyz'",
                     "data_type": "string",
                     "required": true,
                     "primary": true,
@@ -116,7 +121,6 @@
                     "description": "Attribute name to match",
                     "data_type": "string",
                     "required": true,
-                    "primary": false,
                     "value_list": [
                         "samAccountName",
                         "primaryDisplayName",
@@ -128,7 +132,7 @@
                     "description": "Domain of user",
                     "data_type": "string",
                     "required": true,
-                    "primary": false,
+                    "primary": true,
                     "contains": [
                         "domain",
                         "url"
@@ -141,51 +145,50 @@
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "example_values": [
-                        "success"
+                        "success",
+                        "failed"
                     ]
                 },
                 {
-                    "data_path": "action_result.data.*.riskFactors.*.type",
+                    "data_path": "action_result.parameter.attribute_type",
                     "data_type": "string",
                     "example_values": [
-                        "AGED_PASSWORD"
+                        "samAccountName",
+                        "primaryDisplayName",
+                        "secondaryDisplayName"
                     ]
                 },
                 {
-                    "data_path": "action_result.data.*.type",
+                    "data_path": "action_result.parameter.attribute_value",
                     "data_type": "string",
                     "example_values": [
-                        "USER"
+                        "administrator",
+                        "CORP.TEST.COM\\\\Administrator",
+                        "The Administrator"
+                    ],
+                    "contains": [
+                        "preempt user name"
                     ]
                 },
                 {
-                    "data_path": "action_result.data.*.secondaryDisplayName",
+                    "data_path": "action_result.parameter.domain",
                     "data_type": "string",
                     "example_values": [
-                        "CORP.CONTOSO.COM\\Administrator"
+                        "CORP.TEST.COM"
+                    ],
+                    "contains": [
+                        "domain",
+                        "url"
                     ]
                 },
                 {
-                    "data_path": "action_result.data.*.riskScore",
-                    "data_type": "numeric",
+                    "data_path": "action_result.data.*.emailAddresses",
+                    "data_type": "string",
                     "example_values": [
-                        0.47
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.isAdmin",
-                    "data_type": "boolean",
-                    "example_values": [
-                        true,
-                        false
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.watched",
-                    "data_type": "boolean",
-                    "example_values": [
-                        true,
-                        false
+                        "administrator@corp.test.com"
+                    ],
+                    "contains": [
+                        "email"
                     ]
                 },
                 {
@@ -199,7 +202,7 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.data.*.isHuman",
+                    "data_path": "action_result.data.*.isAdmin",
                     "data_type": "boolean",
                     "example_values": [
                         true,
@@ -207,13 +210,11 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.data.*.emailAddresses",
-                    "data_type": "string",
+                    "data_path": "action_result.data.*.isHuman",
+                    "data_type": "boolean",
                     "example_values": [
-                        "administrator@corp.contoso.com"
-                    ],
-                    "contains": [
-                        "email"
+                        true,
+                        false
                     ]
                 },
                 {
@@ -224,40 +225,46 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.message",
+                    "data_path": "action_result.data.*.riskFactors.*.type",
                     "data_type": "string",
                     "example_values": [
-                        "Risk score: 0.47, Primary display name: The Administrator"
+                        "AGED_PASSWORD"
                     ]
                 },
                 {
-                    "data_path": "action_result.parameter.username",
+                    "data_path": "action_result.data.*.riskScore",
+                    "data_type": "numeric",
+                    "example_values": [
+                        0.47
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.secondaryDisplayName",
                     "data_type": "string",
                     "example_values": [
-                        "administrator",
-                        "CORP.CONTOSO.COM\\\\Administrator",
+                        "CORP.TEST.COM\\\\Administrator"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "USER"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.watched",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.primary_display_name",
+                    "data_type": "string",
+                    "example_values": [
                         "The Administrator"
-                    ],
-                    "contains": [
-                        "preempt user name"
-                    ]
-                },
-                {
-                    "data_path": "action_result.parameter.attribute",
-                    "data_type": "string",
-                    "example_values": [
-                        "samAccountName"
-                    ]
-                },
-                {
-                    "data_path": "action_result.parameter.domain",
-                    "data_type": "string",
-                    "example_values": [
-                        "CORP.CONTOSO.COM"
-                    ],
-                    "contains": [
-                        "domain",
-                        "url"
                     ]
                 },
                 {
@@ -268,10 +275,10 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.summary.primary_display_name",
+                    "data_path": "action_result.message",
                     "data_type": "string",
                     "example_values": [
-                        "The Administrator"
+                        "Risk score: 0.47, Primary display name: The Administrator"
                     ]
                 },
                 {
@@ -301,7 +308,6 @@
         {
             "action": "get user risk",
             "description": "Gets the risk of a user",
-            "verbose": "",
             "type": "investigate",
             "identifier": "get_user_risk",
             "read_only": true,
@@ -320,7 +326,7 @@
                     "description": "Domain of user",
                     "data_type": "string",
                     "required": true,
-                    "primary": false,
+                    "primary": true,
                     "contains": [
                         "domain",
                         "url"
@@ -333,23 +339,19 @@
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "example_values": [
-                        "success"
+                        "success",
+                        "failed"
                     ]
                 },
                 {
-                    "data_path": "action_result.data.*.riskScore",
+                    "data_path": "action_result.parameter.domain",
                     "data_type": "string",
                     "example_values": [
-                        "Unavailable",
-                        0.47
-                    ]
-                },
-                {
-                    "data_path": "action_result.message",
-                    "data_type": "string",
-                    "example_values": [
-                        "Result: Username and domain combination not found",
-                        "Risk score: 0.47"
+                        "CORP.TEST.COM"
+                    ],
+                    "contains": [
+                        "domain",
+                        "url"
                     ]
                 },
                 {
@@ -363,14 +365,17 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.parameter.domain",
+                    "data_path": "action_result.data.*.riskFactors.*.type",
                     "data_type": "string",
                     "example_values": [
-                        "CORP.CONTOSO.COM"
-                    ],
-                    "contains": [
-                        "domain",
-                        "url"
+                        "AGED_PASSWORD"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.riskScore",
+                    "data_type": "numeric",
+                    "example_values": [
+                        0.47
                     ]
                 },
                 {
@@ -378,6 +383,21 @@
                     "data_type": "string",
                     "example_values": [
                         "Username and domain combination not found"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.risk_score",
+                    "data_type": "numeric",
+                    "example_values": [
+                        0.47
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Result: Username and domain combination not found",
+                        "Risk score: 0.47"
                     ]
                 },
                 {
@@ -393,20 +413,6 @@
                     "example_values": [
                         1
                     ]
-                },
-                {
-                    "data_path": "action_result.data.*.riskFactors.*.type",
-                    "data_type": "string",
-                    "example_values": [
-                        "AGED_PASSWORD"
-                    ]
-                },
-                {
-                    "data_path": "action_result.summary.risk_score",
-                    "data_type": "numeric",
-                    "example_values": [
-                        0.47
-                    ]
                 }
             ],
             "render": {
@@ -421,9 +427,9 @@
         {
             "action": "watch user",
             "description": "Watch a user",
-            "verbose": "",
-            "type": "contain",
+            "type": "correct",
             "identifier": "watch_user",
+            "undo": "unwatch user",
             "read_only": false,
             "parameters": {
                 "username": {
@@ -440,7 +446,7 @@
                     "description": "Domain of user",
                     "data_type": "string",
                     "required": true,
-                    "primary": false,
+                    "primary": true,
                     "contains": [
                         "domain",
                         "url"
@@ -453,14 +459,29 @@
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "example_values": [
-                        "success"
+                        "success",
+                        "failed"
                     ]
                 },
                 {
-                    "data_path": "action_result.data.*.updatedEntities.*.secondaryDisplayName",
+                    "data_path": "action_result.parameter.domain",
                     "data_type": "string",
                     "example_values": [
-                        "CORP.CONTOSO.COM\\Administrator"
+                        "CORP.TEST.COM"
+                    ],
+                    "contains": [
+                        "domain",
+                        "url"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.username",
+                    "data_type": "string",
+                    "example_values": [
+                        "administrator"
+                    ],
+                    "contains": [
+                        "preempt user name"
                     ]
                 },
                 {
@@ -471,33 +492,10 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.message",
+                    "data_path": "action_result.data.*.updatedEntities.*.secondaryDisplayName",
                     "data_type": "string",
                     "example_values": [
-                        "Result: The Administrator was added to the watch list",
-                        "Result: No entities updated"
-                    ]
-                },
-                {
-                    "data_path": "action_result.parameter.username",
-                    "data_type": "string",
-                    "example_values": [
-                        "administrator",
-                        "administrator_test"
-                    ],
-                    "contains": [
-                        "preempt user name"
-                    ]
-                },
-                {
-                    "data_path": "action_result.parameter.domain",
-                    "data_type": "string",
-                    "example_values": [
-                        "CORP.CONTOSO.COM"
-                    ],
-                    "contains": [
-                        "domain",
-                        "url"
+                        "CORP.TEST.COM\\\\Administrator"
                     ]
                 },
                 {
@@ -509,6 +507,14 @@
                     ],
                     "column_order": 0,
                     "column_name": "Status"
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Result: The Administrator was added to the watch list",
+                        "Result: No entities updated"
+                    ]
                 },
                 {
                     "data_path": "summary.total_objects",
@@ -533,9 +539,9 @@
         {
             "action": "unwatch user",
             "description": "Stop watching a user",
-            "verbose": "",
-            "type": "correct",
+            "type": "contain",
             "identifier": "unwatch_user",
+            "undo": "watch user",
             "read_only": false,
             "parameters": {
                 "username": {
@@ -552,7 +558,7 @@
                     "description": "Domain of user",
                     "data_type": "string",
                     "required": true,
-                    "primary": false,
+                    "primary": true,
                     "contains": [
                         "domain",
                         "url"
@@ -565,14 +571,29 @@
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "example_values": [
-                        "success"
+                        "success",
+                        "failed"
                     ]
                 },
                 {
-                    "data_path": "action_result.data.*.updatedEntities.*.secondaryDisplayName",
+                    "data_path": "action_result.parameter.domain",
                     "data_type": "string",
                     "example_values": [
-                        "CORP.CONTOSO.COM\\Administrator"
+                        "CORP.TEST.COM"
+                    ],
+                    "contains": [
+                        "domain",
+                        "url"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.username",
+                    "data_type": "string",
+                    "example_values": [
+                        "administrator"
+                    ],
+                    "contains": [
+                        "preempt user name"
                     ]
                 },
                 {
@@ -583,33 +604,10 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.message",
+                    "data_path": "action_result.data.*.updatedEntities.*.secondaryDisplayName",
                     "data_type": "string",
                     "example_values": [
-                        "Result: The Administrator was removed from the watch list",
-                        "Result: No entities updated"
-                    ]
-                },
-                {
-                    "data_path": "action_result.parameter.username",
-                    "data_type": "string",
-                    "example_values": [
-                        "administrator",
-                        "administrator_test"
-                    ],
-                    "contains": [
-                        "preempt user name"
-                    ]
-                },
-                {
-                    "data_path": "action_result.parameter.domain",
-                    "data_type": "string",
-                    "example_values": [
-                        "CORP.CONTOSO.COM"
-                    ],
-                    "contains": [
-                        "domain",
-                        "url"
+                        "CORP.TEST.COM\\\\Administrator"
                     ]
                 },
                 {
@@ -621,6 +619,14 @@
                     ],
                     "column_order": 0,
                     "column_name": "Status"
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Result: The Administrator was removed from the watch list",
+                        "Result: No entities updated"
+                    ]
                 },
                 {
                     "data_path": "summary.total_objects",
@@ -645,7 +651,6 @@
         {
             "action": "get incident",
             "description": "Get information about an incident",
-            "verbose": "",
             "type": "investigate",
             "identifier": "get_incident",
             "read_only": true,
@@ -666,71 +671,32 @@
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "example_values": [
-                        "success"
+                        "success",
+                        "failed"
                     ]
                 },
                 {
-                    "data_path": "action_result.data.*.lifeCycleStage",
+                    "data_path": "action_result.parameter.incident_number",
+                    "data_type": "numeric",
+                    "contains": [
+                        "preempt incident id"
+                    ],
+                    "example_values": [
+                        7
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.alertEvents.*.alertId",
                     "data_type": "string",
                     "example_values": [
-                        "NEW"
+                        "6e4e2205-f1d4-455f-811d-01a20c4c0cb0"
                     ]
                 },
                 {
-                    "data_path": "action_result.data.*.endTime",
+                    "data_path": "action_result.data.*.alertEvents.*.alertType",
                     "data_type": "string",
                     "example_values": [
-                        "2019-07-23T00:58:24.009Z"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.severity",
-                    "data_type": "string",
-                    "example_values": [
-                        "MEDIUM"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.markedAsRead",
-                    "data_type": "boolean",
-                    "example_values": [
-                        true,
-                        false
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.comments.*.text",
-                    "data_type": "string",
-                    "example_values": [
-                        "This is suspicious"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.comments.*.author.username",
-                    "data_type": "string",
-                    "example_values": [
-                        "admin"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.comments.*.author.type",
-                    "data_type": "string",
-                    "example_values": [
-                        "LOCAL"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.comments.*.author.displayName",
-                    "data_type": "string",
-                    "example_values": [
-                        "admin"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.comments.*.timestamp",
-                    "data_type": "string",
-                    "example_values": [
-                        "2019-07-19T00:00:54.979Z"
+                        "ForbiddenCountryAlert"
                     ]
                 },
                 {
@@ -745,17 +711,38 @@
                     "data_type": "string"
                 },
                 {
-                    "data_path": "action_result.data.*.alertEvents.*.alertType",
+                    "data_path": "action_result.data.*.comments.*.author.displayName",
                     "data_type": "string",
                     "example_values": [
-                        "ForbiddenCountryAlert"
+                        "admin"
                     ]
                 },
                 {
-                    "data_path": "action_result.data.*.alertEvents.*.alertId",
+                    "data_path": "action_result.data.*.comments.*.author.type",
                     "data_type": "string",
                     "example_values": [
-                        "6e4e2205-f1d4-455f-811d-01a20c4c0cb0"
+                        "LOCAL"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.comments.*.author.username",
+                    "data_type": "string",
+                    "example_values": [
+                        "admin"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.comments.*.text",
+                    "data_type": "string",
+                    "example_values": [
+                        "This is suspicious"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.comments.*.timestamp",
+                    "data_type": "string",
+                    "example_values": [
+                        "2019-07-19T00:00:54.979Z"
                     ]
                 },
                 {
@@ -767,6 +754,13 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.data.*.compromisedEntities.*.accounts.*.dataSource",
+                    "data_type": "string",
+                    "example_values": [
+                        "ACTIVE_DIRECTORY"
+                    ]
+                },
+                {
                     "data_path": "action_result.data.*.compromisedEntities.*.accounts.*.enabled",
                     "data_type": "boolean",
                     "example_values": [
@@ -775,10 +769,32 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.data.*.compromisedEntities.*.accounts.*.dataSource",
+                    "data_path": "action_result.data.*.endTime",
                     "data_type": "string",
                     "example_values": [
-                        "ACTIVE_DIRECTORY"
+                        "2019-07-23T00:58:24.009Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.lifeCycleStage",
+                    "data_type": "string",
+                    "example_values": [
+                        "NEW"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.markedAsRead",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.severity",
+                    "data_type": "string",
+                    "example_values": [
+                        "MEDIUM"
                     ]
                 },
                 {
@@ -796,27 +812,17 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.message",
-                    "data_type": "string",
-                    "example_values": [
-                        "Severity: MEDIUM"
-                    ]
-                },
-                {
-                    "data_path": "action_result.parameter.incident_number",
-                    "data_type": "numeric",
-                    "contains": [
-                        "preempt incident id"
-                    ],
-                    "example_values": [
-                        7
-                    ]
-                },
-                {
                     "data_path": "action_result.summary.severity",
                     "data_type": "string",
                     "example_values": [
                         "MEDIUM"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Severity: MEDIUM"
                     ]
                 },
                 {
@@ -871,7 +877,6 @@
                     "description": "Life cycle stage to update incident to",
                     "data_type": "string",
                     "required": false,
-                    "primary": false,
                     "value_list": [
                         "NEW",
                         "IN_PROGRESS",
@@ -885,14 +890,12 @@
                     "description": "Reason for updating incident. This parameter is required if updating stage",
                     "data_type": "string",
                     "required": false,
-                    "primary": false,
                     "order": 3
                 },
                 "comment": {
                     "description": "Comment to add to incident",
                     "data_type": "string",
                     "required": false,
-                    "primary": false,
                     "order": 4
                 }
             },
@@ -903,36 +906,6 @@
                     "example_values": [
                         "success",
                         "failed"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.setIncidentState.incident.lifeCycleStage",
-                    "data_type": "string",
-                    "example_values": [
-                        "IN_PROGRESS"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.addCommentToIncident.incident.comments.*.text",
-                    "data_type": "string",
-                    "example_values": [
-                        "Test from Phantom"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.addCommentToIncident.incident.comments.*.author.displayName",
-                    "data_type": "string",
-                    "example_values": [
-                        "token (API)"
-                    ]
-                },
-                {
-                    "data_path": "action_result.message",
-                    "data_type": "string",
-                    "example_values": [
-                        "Num comments: 8, Comment status: Comment successfully added to incident, Life cycle state: Incident state is IN_PROGRESS",
-                        "Life cycle state: Incident state is IN_PROGRESS",
-                        "At least one of either stage and reason OR comment parameters must be included in action request"
                     ]
                 },
                 {
@@ -967,10 +940,24 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.summary.num_comments",
-                    "data_type": "numeric",
+                    "data_path": "action_result.data.*.addCommentToIncident.incident.comments.*.author.displayName",
+                    "data_type": "string",
                     "example_values": [
-                        8
+                        "token (API)"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.addCommentToIncident.incident.comments.*.text",
+                    "data_type": "string",
+                    "example_values": [
+                        "Test"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.setIncidentState.incident.lifeCycleStage",
+                    "data_type": "string",
+                    "example_values": [
+                        "IN_PROGRESS"
                     ]
                 },
                 {
@@ -987,10 +974,26 @@
                     "data_type": "string",
                     "example_values": [
                         "Incident state is IN_PROGRESS",
-                        "Life cycle stage not updated. Both stage and reason parameters must be included in action request"
+                        "Life cycle stage not updated. Both stage and reason parameters must be included in the action request"
                     ],
                     "column_name": "Life Cycle State",
                     "column_order": 1
+                },
+                {
+                    "data_path": "action_result.summary.num_comments",
+                    "data_type": "numeric",
+                    "example_values": [
+                        8
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Num comments: 8, Comment status: Comment successfully added to incident, Life cycle state: Incident state is IN_PROGRESS",
+                        "Life cycle state: Incident state is IN_PROGRESS",
+                        "At least one of either stage and reason OR comment parameters must be included in the action request"
+                    ]
                 },
                 {
                     "data_path": "summary.total_objects",
@@ -1016,7 +1019,6 @@
         {
             "action": "get user activity",
             "description": "Get user activity from the specified number of hours ago",
-            "verbose": "",
             "type": "investigate",
             "identifier": "get_user_activity",
             "read_only": true,
@@ -1035,7 +1037,6 @@
                     "description": "Starting time of search in ISO-8601 date string format (YYYY-MM-DD). Examples: 2019-12-12, P-1W",
                     "data_type": "string",
                     "required": true,
-                    "primary": false,
                     "default": "P-1D",
                     "order": 1
                 },
@@ -1043,14 +1044,12 @@
                     "description": "Comma separated list of types of events to return. All types of events returned if left blank",
                     "data_type": "string",
                     "required": false,
-                    "primary": false,
                     "order": 2
                 },
                 "limit": {
                     "description": "Number of results to return, or leave field blank to return all results",
                     "data_type": "numeric",
                     "required": false,
-                    "primary": false,
                     "order": 3
                 }
             },
@@ -1059,7 +1058,39 @@
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "example_values": [
-                        "success"
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.limit",
+                    "data_type": "numeric",
+                    "example_values": [
+                        5
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.start_time",
+                    "data_type": "string",
+                    "example_values": [
+                        "P-2W"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.types",
+                    "data_type": "string",
+                    "example_values": [
+                        "SUCCESSFUL_AUTHENTICATION, FAILED_AUTHENTICATION, ENTITY_WATCHED, ACCOUNT_CREATED"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.username",
+                    "data_type": "string",
+                    "example_values": [
+                        "test_username"
+                    ],
+                    "contains": [
+                        "preempt user name"
                     ]
                 },
                 {
@@ -1068,6 +1099,19 @@
                     "example_values": [
                         "SSO_LOGIN"
                     ]
+                },
+                {
+                    "data_path": "action_result.data.*.endpointEntity",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.eventLabel",
+                    "data_type": "string",
+                    "example_values": [
+                        "SSO Login"
+                    ],
+                    "column_order": 3,
+                    "column_name": "Event Label"
                 },
                 {
                     "data_path": "action_result.data.*.eventSeverity",
@@ -1095,21 +1139,13 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.data.*.endpointEntity",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.userEntity.secondaryDisplayName",
+                    "data_path": "action_result.data.*.ipAddress",
                     "data_type": "string",
                     "example_values": [
-                        "CORP.CONTOSO.COM\\test_username"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.userEntity.primaryDisplayName",
-                    "data_type": "string",
-                    "example_values": [
-                        "TestFirst TestLast"
+                        "12.196.122.120"
+                    ],
+                    "contains": [
+                        "ip"
                     ]
                 },
                 {
@@ -1122,60 +1158,17 @@
                     "column_name": "Timestamp"
                 },
                 {
-                    "data_path": "action_result.data.*.eventLabel",
+                    "data_path": "action_result.data.*.userEntity.primaryDisplayName",
                     "data_type": "string",
                     "example_values": [
-                        "SSO Login (Okta)"
-                    ],
-                    "column_order": 3,
-                    "column_name": "Event Label"
-                },
-                {
-                    "data_path": "action_result.data.*.ipAddress",
-                    "data_type": "string",
-                    "example_values": [
-                        "12.196.122.120"
-                    ],
-                    "contains": [
-                        "ip"
+                        "TestFirst TestLast"
                     ]
                 },
                 {
-                    "data_path": "action_result.message",
+                    "data_path": "action_result.data.*.userEntity.secondaryDisplayName",
                     "data_type": "string",
                     "example_values": [
-                        "Num results: 5"
-                    ]
-                },
-                {
-                    "data_path": "action_result.parameter.username",
-                    "data_type": "string",
-                    "example_values": [
-                        "test_username"
-                    ],
-                    "contains": [
-                        "preempt user name"
-                    ]
-                },
-                {
-                    "data_path": "action_result.parameter.start_time",
-                    "data_type": "string",
-                    "example_values": [
-                        "P-2W"
-                    ]
-                },
-                {
-                    "data_path": "action_result.parameter.limit",
-                    "data_type": "numeric",
-                    "example_values": [
-                        5
-                    ]
-                },
-                {
-                    "data_path": "action_result.parameter.types",
-                    "data_type": "string",
-                    "example_values": [
-                        "SUCCESSFUL_AUTHENTICATION, FAILED_AUTHENTICATION, ENTITY_WATCHED, ACCOUNT_CREATED"
+                        "CORP.TEST.COM\\\\test_username"
                     ]
                 },
                 {
@@ -1183,6 +1176,13 @@
                     "data_type": "numeric",
                     "example_values": [
                         5
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Num results: 5"
                     ]
                 },
                 {

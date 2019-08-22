@@ -79,9 +79,18 @@ class PreemptConnector(BaseConnector):
         if 200 <= r.status_code < 399:
             return RetVal(phantom.APP_SUCCESS, resp_json)
 
-        # You should process the error returned in the json
-        message = "Error from server. Status Code: {0} Data from server: {1}".format(
-                r.status_code, r.text.replace(u'{', '{{').replace(u'}', '}}'))
+        msg = []
+        if resp_json.get('errors'):
+            for error in resp_json.get('errors'):
+                msg.append(error.get('message').strip('.'))
+
+        if msg:
+            message = "Error from server. Status Code: {0} Data from server: {1}".format(
+                r.status_code, '.'.join(msg))
+        else:
+            # You should process the error returned in the json
+            message = "Error from server. Status Code: {0} Data from server: {1}".format(
+                    r.status_code, r.text.replace(u'{', '{{').replace(u'}', '}}'))
 
         if "Method Not Allowed" in message:
             message = "Method not allowed"
@@ -201,7 +210,7 @@ class PreemptConnector(BaseConnector):
                     first: 1)
             {{
                 nodes {{
-                    entityId g
+                    entityId
                     type
 
                     primaryDisplayName

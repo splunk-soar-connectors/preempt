@@ -74,10 +74,8 @@
     {% if result.data %}
       <!-- User Risk -->
       {% if result.data.0.riskFactors %}
+      <h3 class="wf-h3-style">Risk Factors</h3>
       <table class="wf-table-horizontal">
-        <tr>
-          <th>Risk Factors</th>
-        </tr>
       {% for data in result.data.0.riskFactors %}
           <tr>
             <td>{{ data.type }}</td>
