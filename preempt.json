@@ -973,7 +973,7 @@
                     "data_type": "string",
                     "example_values": [
                         "Incident state is IN_PROGRESS",
-                        "Life cycle stage not updated. Both stage and reason parameters must be included in action request"
+                        "Life cycle stage not updated. Both stage and reason parameters must be included in the action request"
                     ],
                     "column_name": "Life Cycle State",
                     "column_order": 1
