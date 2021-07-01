@@ -9,12 +9,16 @@
     "product_name": "Preempt Platform",
     "product_version_regex": ".*",
     "publisher": "Splunk",
-    "license": "Copyright (c) 2019 Splunk Inc.",
-    "app_version": "1.0.2",
+    "license": "Copyright (c) 2019-2021 Splunk Inc.",
+    "app_version": "2.0.0",
     "utctime_updated": "2019-08-22T23:50:27.000000Z",
     "package_name": "phantom_preempt",
-    "main_module": "preempt_connector.pyc",
-    "min_phantom_version": "4.2.7532",
+    "main_module": "preempt_connector.py",
+    "python_version": "3",
+    "latest_tested_versions": [
+        "On-Prem, tested on 1st July, 2021"
+    ],
+    "min_phantom_version": "4.9.39220",
     "app_wizard_version": "1.0.0",
     "configuration": {
         "platform_address": {
@@ -33,20 +37,17 @@
             "data_type": "numeric",
             "order": 2,
             "description": "Maximum incidents to poll first time",
-            "required": false,
             "default": 1000
         },
         "max_incidents": {
             "data_type": "numeric",
             "order": 3,
             "description": "Maximum incidents for scheduled polling",
-            "required": false,
             "default": 100
         },
         "verify_server_cert": {
             "description": "Verify server certificate",
             "data_type": "boolean",
-            "required": false,
             "default": false,
             "order": 4
         }
@@ -108,7 +109,6 @@
             "parameters": {
                 "attribute_value": {
                     "description": "Username or Attribute value to match. If using secondaryDisplayName attribute, escape the backslash between domain and name",
-                    "verbose": "If the domain is 'COPR.TEST.COM' and the user is 'xyz', the primary name would be 'The xyz', the secondary name would be 'CORP.TEST.COM\\xyz' and the samAccountName would be 'xyz'",
                     "data_type": "string",
                     "required": true,
                     "primary": true,
@@ -676,6 +676,13 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.data.*.incidentId",
+                    "data_type": "string",
+                    "example_values": [
+                        "INC-10"
+                    ]
+                },
+                {
                     "data_path": "action_result.parameter.incident_number",
                     "data_type": "numeric",
                     "contains": [
@@ -870,13 +877,11 @@
                 "ph_0": {
                     "description": "Placeholder",
                     "data_type": "ph",
-                    "required": false,
                     "order": 1
                 },
                 "stage": {
                     "description": "Life cycle stage to update incident to",
                     "data_type": "string",
-                    "required": false,
                     "value_list": [
                         "NEW",
                         "IN_PROGRESS",
@@ -889,13 +894,11 @@
                 "reason": {
                     "description": "Reason for updating incident. This parameter is required if updating stage",
                     "data_type": "string",
-                    "required": false,
                     "order": 3
                 },
                 "comment": {
                     "description": "Comment to add to incident",
                     "data_type": "string",
-                    "required": false,
                     "order": 4
                 }
             },
@@ -917,7 +920,7 @@
                 },
                 {
                     "data_path": "action_result.parameter.incident_number",
-                    "data_type": "string",
+                    "data_type": "numeric",
                     "contains": [
                         "preempt incident id"
                     ],
@@ -1043,13 +1046,11 @@
                 "types": {
                     "description": "Comma separated list of types of events to return. All types of events returned if left blank",
                     "data_type": "string",
-                    "required": false,
                     "order": 2
                 },
                 "limit": {
                     "description": "Number of results to return, or leave field blank to return all results",
                     "data_type": "numeric",
-                    "required": false,
                     "order": 3
                 }
             },
