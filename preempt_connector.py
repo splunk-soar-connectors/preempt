@@ -52,6 +52,9 @@ class PreemptConnector(BaseConnector):
 
         try:
             soup = BeautifulSoup(response.text, "html.parser")
+            # Remove the script, style, footer and navigation part from the HTML message
+            for element in soup(["script", "style", "footer", "nav"]):
+                element.extract()
             error_text = soup.text
             split_lines = error_text.split('\n')
             split_lines = [x.strip() for x in split_lines if x.strip()]
@@ -889,7 +892,7 @@ class PreemptConnector(BaseConnector):
             pass
 
         ret_val, message, resp = self.save_artifacts(artifact_list)
-
+        self.debug_print("Error saving container: ", message)
         if not ret_val:
             return phantom.APP_ERROR
 
