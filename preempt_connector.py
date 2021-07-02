@@ -370,7 +370,7 @@ class PreemptConnector(BaseConnector):
                 action_result.update_data(nodes)
 
             has_next_page = result.get('pageInfo', {}).get('hasNextPage', False)
-            if has_next_page is True:
+            if has_next_page is True and len(action_result.get_data()) < result_limit:
                 param.update({ 'after': 'after: "{}"'.format(result['pageInfo']['endCursor']) })
             else:
                 break
