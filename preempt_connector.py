@@ -892,8 +892,8 @@ class PreemptConnector(BaseConnector):
             pass
 
         ret_val, message, resp = self.save_artifacts(artifact_list)
-        self.debug_print("Error saving container: ", message)
         if not ret_val:
+            self.debug_print("Error saving container: ", message)
             return phantom.APP_ERROR
 
         return phantom.APP_SUCCESS
