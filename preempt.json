@@ -341,6 +341,7 @@
                         "primaryDisplayName",
                         "secondaryDisplayName"
                     ],
+                    "default": "samAccountName",
                     "order": 2
                 }
             },
@@ -480,6 +481,7 @@
                         "primaryDisplayName",
                         "secondaryDisplayName"
                     ],
+                    "default": "samAccountName",
                     "order": 2
                 }
             },
@@ -611,6 +613,7 @@
                         "primaryDisplayName",
                         "secondaryDisplayName"
                     ],
+                    "default": "samAccountName",
                     "order": 2
                 }
             },

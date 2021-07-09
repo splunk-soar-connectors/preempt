@@ -424,7 +424,7 @@ class PreemptConnector(BaseConnector):
         }}'''.format(attribute_type=attribute_type, username=username, domain=domain)
 
         # make rest call
-        ret_val, response = self._make_rest_call(action_result, data=data)=
+        ret_val, response = self._make_rest_call(action_result, data=data)
 
         if phantom.is_fail(ret_val):
             return action_result.get_status()
