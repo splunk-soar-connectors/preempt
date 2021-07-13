@@ -332,9 +332,29 @@
                         "url"
                     ],
                     "order": 1
+                },
+                "attribute_type": {
+                    "description": "Attribute name to match",
+                    "data_type": "string",
+                    "value_list": [
+                        "samAccountName",
+                        "primaryDisplayName",
+                        "secondaryDisplayName"
+                    ],
+                    "default": "samAccountName",
+                    "order": 2
                 }
             },
             "output": [
+                {
+                    "data_path": "action_result.parameter.attribute_type",
+                    "data_type": "string",
+                    "example_values": [
+                        "samAccountName",
+                        "primaryDisplayName",
+                        "secondaryDisplayName"
+                    ]
+                },
                 {
                     "data_path": "action_result.status",
                     "data_type": "string",
@@ -452,9 +472,29 @@
                         "url"
                     ],
                     "order": 1
+                },
+                "attribute_type": {
+                    "description": "Attribute name to match",
+                    "data_type": "string",
+                    "value_list": [
+                        "samAccountName",
+                        "primaryDisplayName",
+                        "secondaryDisplayName"
+                    ],
+                    "default": "samAccountName",
+                    "order": 2
                 }
             },
             "output": [
+                {
+                    "data_path": "action_result.parameter.attribute_type",
+                    "data_type": "string",
+                    "example_values": [
+                        "samAccountName",
+                        "primaryDisplayName",
+                        "secondaryDisplayName"
+                    ]
+                },
                 {
                     "data_path": "action_result.status",
                     "data_type": "string",
@@ -564,9 +604,29 @@
                         "url"
                     ],
                     "order": 1
+                },
+                "attribute_type": {
+                    "description": "Attribute name to match",
+                    "data_type": "string",
+                    "value_list": [
+                        "samAccountName",
+                        "primaryDisplayName",
+                        "secondaryDisplayName"
+                    ],
+                    "default": "samAccountName",
+                    "order": 2
                 }
             },
             "output": [
+                {
+                    "data_path": "action_result.parameter.attribute_type",
+                    "data_type": "string",
+                    "example_values": [
+                        "samAccountName",
+                        "primaryDisplayName",
+                        "secondaryDisplayName"
+                    ]
+                },
                 {
                     "data_path": "action_result.status",
                     "data_type": "string",

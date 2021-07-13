@@ -404,9 +404,11 @@ class PreemptConnector(BaseConnector):
 
         username = param['username']
         domain = param['domain']
+        attribute = param.get('attribute_type','samAccountName')
+        attribute_type = ATTRIBUTE_TYPES.get(attribute)
 
         data = '''{{
-            entities(samAccountNames: "{username}"
+            entities({attribute_type}: "{username}"
                     domains: "{domain}"
                     archived: false
                     first: 1)
@@ -419,7 +421,7 @@ class PreemptConnector(BaseConnector):
                     }}
                 }}
             }}
-        }}'''.format(username=username, domain=domain)
+        }}'''.format(attribute_type=attribute_type, username=username, domain=domain)
 
         # make rest call
         ret_val, response = self._make_rest_call(action_result, data=data)
@@ -452,9 +454,11 @@ class PreemptConnector(BaseConnector):
 
         username = param['username']
         domain = param['domain']
+        attribute = param.get('attribute_type','samAccountName')
+        attribute_type = ATTRIBUTE_TYPES.get(attribute)
 
         data = '''mutation {{
-            addEntitiesToWatchList(input: {{ entityQuery: {{ samAccountNames: "{username}", domains: "{domain}" }} }})
+            addEntitiesToWatchList(input: {{ entityQuery: {{ {attribute_type}: "{username}", domains: "{domain}" }} }})
             {{
                 updatedEntities
                 {{
@@ -462,7 +466,7 @@ class PreemptConnector(BaseConnector):
                 secondaryDisplayName
                 }}
             }}
-        }}'''.format(username=username, domain=domain)
+        }}'''.format(attribute_type=attribute_type, username=username, domain=domain)
 
         # make rest call
         ret_val, response = self._make_rest_call(action_result, data=data)
@@ -493,9 +497,11 @@ class PreemptConnector(BaseConnector):
 
         username = param['username']
         domain = param['domain']
+        attribute = param.get('attribute_type','samAccountName')
+        attribute_type = ATTRIBUTE_TYPES.get(attribute)
 
         data = '''mutation {{
-            removeEntitiesFromWatchList(input: {{ entityQuery: {{ samAccountNames: "{username}", domains: "{domain}" }} }})
+            removeEntitiesFromWatchList(input: {{ entityQuery: {{ {attribute_type}: "{username}", domains: "{domain}" }} }})
             {{
                 updatedEntities
                 {{
@@ -503,7 +509,7 @@ class PreemptConnector(BaseConnector):
                 secondaryDisplayName
                 }}
             }}
-        }}'''.format(username=username, domain=domain)
+        }}'''.format(attribute_type=attribute_type, username=username, domain=domain)
 
         # make rest call
         ret_val, response = self._make_rest_call(action_result, data=data)
