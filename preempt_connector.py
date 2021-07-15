@@ -1,5 +1,5 @@
 # File: preempt_connector.py
-# Copyright (c) 2019 Splunk Inc.
+# Copyright (c) 2019-2021 Splunk Inc.
 #
 # SPLUNK CONFIDENTIAL - Use or disclosure of this material in whole or in part
 # without a valid written license from Splunk Inc. is PROHIBITED.
@@ -52,6 +52,9 @@ class PreemptConnector(BaseConnector):
 
         try:
             soup = BeautifulSoup(response.text, "html.parser")
+            # Remove the script, style, footer and navigation part from the HTML message
+            for element in soup(["script", "style", "footer", "nav"]):
+                element.extract()
             error_text = soup.text
             split_lines = error_text.split('\n')
             split_lines = [x.strip() for x in split_lines if x.strip()]
@@ -63,7 +66,7 @@ class PreemptConnector(BaseConnector):
             self.debug_print("Status Code: {0}. Data from server: {1}".format(status_code, error_text))
             message = "Error while connecting to the server."
 
-        message = message.replace(u'{', '{{').replace(u'}', '}}')
+        message = message.replace('{', '{{').replace('}', '}}')
 
         return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
 
@@ -90,7 +93,7 @@ class PreemptConnector(BaseConnector):
         else:
             # You should process the error returned in the json
             message = "Error from server. Status Code: {0} Data from server: {1}".format(
-                    r.status_code, r.text.replace(u'{', '{{').replace(u'}', '}}'))
+                    r.status_code, r.text.replace('{', '{{').replace('}', '}}'))
 
         if "Method Not Allowed" in message:
             message = "Method not allowed"
@@ -183,7 +186,7 @@ class PreemptConnector(BaseConnector):
         # make rest call
         ret_val, response = self._make_rest_call(action_result, data=data)
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return action_result.get_status()
 
         # Return success
@@ -250,7 +253,7 @@ class PreemptConnector(BaseConnector):
         # make rest call
         ret_val, response = self._make_rest_call(action_result, data=data)
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return action_result.get_status()
 
         result = response.get('data', {}).get('entities', {}).get('nodes', [])
@@ -354,7 +357,7 @@ class PreemptConnector(BaseConnector):
             # make rest call
             ret_val, response = self._make_rest_call(action_result, data=data)
 
-            if (phantom.is_fail(ret_val)):
+            if phantom.is_fail(ret_val):
                 return action_result.get_status()
 
             result = response.get('data', {}).get('timeline', {})
@@ -370,7 +373,7 @@ class PreemptConnector(BaseConnector):
                 action_result.update_data(nodes)
 
             has_next_page = result.get('pageInfo', {}).get('hasNextPage', False)
-            if has_next_page is True:
+            if has_next_page is True and len(action_result.get_data()) < result_limit:
                 param.update({ 'after': 'after: "{}"'.format(result['pageInfo']['endCursor']) })
             else:
                 break
@@ -401,9 +404,11 @@ class PreemptConnector(BaseConnector):
 
         username = param['username']
         domain = param['domain']
+        attribute = param.get('attribute_type','samAccountName')
+        attribute_type = ATTRIBUTE_TYPES.get(attribute)
 
         data = '''{{
-            entities(samAccountNames: "{username}"
+            entities({attribute_type}: "{username}"
                     domains: "{domain}"
                     archived: false
                     first: 1)
@@ -416,12 +421,12 @@ class PreemptConnector(BaseConnector):
                     }}
                 }}
             }}
-        }}'''.format(username=username, domain=domain)
+        }}'''.format(attribute_type=attribute_type, username=username, domain=domain)
 
         # make rest call
         ret_val, response = self._make_rest_call(action_result, data=data)
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return action_result.get_status()
 
         result = response.get('data', {}).get('entities', {}).get('nodes', [])
@@ -449,9 +454,11 @@ class PreemptConnector(BaseConnector):
 
         username = param['username']
         domain = param['domain']
+        attribute = param.get('attribute_type','samAccountName')
+        attribute_type = ATTRIBUTE_TYPES.get(attribute)
 
         data = '''mutation {{
-            addEntitiesToWatchList(input: {{ entityQuery: {{ samAccountNames: "{username}", domains: "{domain}" }} }})
+            addEntitiesToWatchList(input: {{ entityQuery: {{ {attribute_type}: "{username}", domains: "{domain}" }} }})
             {{
                 updatedEntities
                 {{
@@ -459,12 +466,12 @@ class PreemptConnector(BaseConnector):
                 secondaryDisplayName
                 }}
             }}
-        }}'''.format(username=username, domain=domain)
+        }}'''.format(attribute_type=attribute_type, username=username, domain=domain)
 
         # make rest call
         ret_val, response = self._make_rest_call(action_result, data=data)
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return action_result.get_status()
 
         result = response.get('data', {}).get('addEntitiesToWatchList', {})
@@ -490,9 +497,11 @@ class PreemptConnector(BaseConnector):
 
         username = param['username']
         domain = param['domain']
+        attribute = param.get('attribute_type','samAccountName')
+        attribute_type = ATTRIBUTE_TYPES.get(attribute)
 
         data = '''mutation {{
-            removeEntitiesFromWatchList(input: {{ entityQuery: {{ samAccountNames: "{username}", domains: "{domain}" }} }})
+            removeEntitiesFromWatchList(input: {{ entityQuery: {{ {attribute_type}: "{username}", domains: "{domain}" }} }})
             {{
                 updatedEntities
                 {{
@@ -500,12 +509,12 @@ class PreemptConnector(BaseConnector):
                 secondaryDisplayName
                 }}
             }}
-        }}'''.format(username=username, domain=domain)
+        }}'''.format(attribute_type=attribute_type, username=username, domain=domain)
 
         # make rest call
         ret_val, response = self._make_rest_call(action_result, data=data)
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return action_result.get_status()
 
         result = response.get('data', {}).get('removeEntitiesFromWatchList', {})
@@ -583,7 +592,7 @@ class PreemptConnector(BaseConnector):
         # make rest call
         ret_val, response = self._make_rest_call(action_result, data=data)
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return action_result.get_status()
 
         result = response.get('data', {}).get('incident', {})
@@ -630,7 +639,7 @@ class PreemptConnector(BaseConnector):
             # make rest call
             ret_val, response = self._make_rest_call(action_result, data=data_stage)
 
-            if (phantom.is_fail(ret_val)):
+            if phantom.is_fail(ret_val):
                 return action_result.get_status()
 
             result = response.get('data', {})
@@ -655,7 +664,7 @@ class PreemptConnector(BaseConnector):
             # make rest call
             ret_val, response = self._make_rest_call(action_result, data=data_comment)
 
-            if (phantom.is_fail(ret_val)):
+            if phantom.is_fail(ret_val):
                 return action_result.get_status()
 
             result = response.get('data', {})
@@ -687,7 +696,7 @@ class PreemptConnector(BaseConnector):
             self.debug_print("Unable to query Preempt artifact", e)
             return None
 
-        if (resp_json.get('count', 0) <= 0):
+        if resp_json.get('count', 0) <= 0:
             self.debug_print("No artifact matched")
             return None
 
@@ -889,8 +898,8 @@ class PreemptConnector(BaseConnector):
             pass
 
         ret_val, message, resp = self.save_artifacts(artifact_list)
-
         if not ret_val:
+            self.debug_print("Error saving container: ", message)
             return phantom.APP_ERROR
 
         return phantom.APP_SUCCESS
@@ -967,7 +976,7 @@ class PreemptConnector(BaseConnector):
             max_incidents = param.get(phantom.APP_JSON_CONTAINER_COUNT)
 
         # If it's the first poll, don't filter based on update time
-        elif (state.get('first_run', True)):
+        elif state.get('first_run', True):
             state['first_run'] = False
             after = ''
             updated_after = 'updatedAfter: "{}"'.format(last_converted_time)
@@ -1132,13 +1141,13 @@ if __name__ == '__main__':
     username = args.username
     password = args.password
 
-    if (username is not None and password is None):
+    if username is not None and password is None:
 
         # User specified a username but not a password, so ask
         import getpass
         password = getpass.getpass("Password: ")
 
-    if (username and password):
+    if username and password:
         try:
             login_url = BaseConnector._get_phantom_base_url() + '/login'
 
@@ -1155,11 +1164,11 @@ if __name__ == '__main__':
             headers['Cookie'] = 'csrftoken=' + csrftoken
             headers['Referer'] = login_url
 
-            print ("Logging into Platform to get the session id")
+            print("Logging into Platform to get the session id")
             r2 = requests.post(login_url, verify=False, data=data, headers=headers)
             session_id = r2.cookies['sessionid']
         except Exception as e:
-            print ("Unable to get session id from the platform. Error: " + str(e))
+            print("Unable to get session id from the platform. Error: " + str(e))
             exit(1)
 
     with open(args.input_test_json) as f:
@@ -1175,6 +1184,6 @@ if __name__ == '__main__':
             connector._set_csrf_info(csrftoken, headers['Referer'])
 
         ret_val = connector._handle_action(json.dumps(in_json), None)
-        print (json.dumps(json.loads(ret_val), indent=4))
+        print(json.dumps(json.loads(ret_val), indent=4))
 
     exit(0)
