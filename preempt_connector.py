@@ -412,7 +412,7 @@ class PreemptConnector(BaseConnector):
 
         username = param['username']
         domain = param['domain']
-        attribute = param.get('attribute_type','samAccountName')
+        attribute = param.get('attribute_type', 'samAccountName')
         attribute_type = ATTRIBUTE_TYPES.get(attribute)
 
         data = '''{{
@@ -462,7 +462,7 @@ class PreemptConnector(BaseConnector):
 
         username = param['username']
         domain = param['domain']
-        attribute = param.get('attribute_type','samAccountName')
+        attribute = param.get('attribute_type', 'samAccountName')
         attribute_type = ATTRIBUTE_TYPES.get(attribute)
 
         data = '''mutation {{
@@ -505,7 +505,7 @@ class PreemptConnector(BaseConnector):
 
         username = param['username']
         domain = param['domain']
-        attribute = param.get('attribute_type','samAccountName')
+        attribute = param.get('attribute_type', 'samAccountName')
         attribute_type = ATTRIBUTE_TYPES.get(attribute)
 
         data = '''mutation {{
@@ -1159,7 +1159,7 @@ if __name__ == '__main__':
         try:
             login_url = BaseConnector._get_phantom_base_url() + '/login'
 
-            print ("Accessing the Login page")
+            print("Accessing the Login page")
             r = requests.get(login_url, verify=False)
             csrftoken = r.cookies['csrftoken']
 
