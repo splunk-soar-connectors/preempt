@@ -12,18 +12,18 @@
 # the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
 # either express or implied. See the License for the specific language governing permissions
 # and limitations under the License.
-import phantom.app as phantom
-from phantom.base_connector import BaseConnector
-from phantom.action_result import ActionResult
-
-from preempt_consts import *
-import requests
-import json
-from bs4 import BeautifulSoup
-
 import copy
+import json
 import time
 from datetime import datetime
+
+import phantom.app as phantom
+import requests
+from bs4 import BeautifulSoup
+from phantom.action_result import ActionResult
+from phantom.base_connector import BaseConnector
+
+from preempt_consts import *
 
 
 class RetVal(tuple):
@@ -302,7 +302,8 @@ class PreemptConnector(BaseConnector):
                     types.remove(item)
                     # Remove the invalid types, but still query on the rest of the valid ones
             if len(types) == 0:
-                return action_result.set_status(phantom.APP_ERROR, "All types provided are invalid. Refer to Preempt TimelineEventType API documentation for valid types")
+                return action_result.set_status(phantom.APP_ERROR,
+                    "All types provided are invalid. Refer to Preempt TimelineEventType API documentation for valid types")
             types = "types: {}".format(types).replace("'", "")
 
         while True:
@@ -396,7 +397,8 @@ class PreemptConnector(BaseConnector):
         if len(invalid_types) == 1:
             summary['type_parameter_error'] = "{} is invalid and was not used in the query".format(invalid_types[0])
         elif len(invalid_types) > 1:
-            types_formatted = ''.join(["and {}".format(item) if idx + 1 == len(invalid_types) else "{}, ".format(item) for idx, item in enumerate(invalid_types)])
+            types_formatted = ''.join(["and {}".format(item) if idx + 1 == len(invalid_types)
+                else "{}, ".format(item) for idx, item in enumerate(invalid_types)])
             summary['type_parameter_error'] = "{} are invalid and were not used in the query".format(types_formatted)
 
         # Return success, no need to set the message, only the status
@@ -412,7 +414,7 @@ class PreemptConnector(BaseConnector):
 
         username = param['username']
         domain = param['domain']
-        attribute = param.get('attribute_type','samAccountName')
+        attribute = param.get('attribute_type', 'samAccountName')
         attribute_type = ATTRIBUTE_TYPES.get(attribute)
 
         data = '''{{
@@ -462,7 +464,7 @@ class PreemptConnector(BaseConnector):
 
         username = param['username']
         domain = param['domain']
-        attribute = param.get('attribute_type','samAccountName')
+        attribute = param.get('attribute_type', 'samAccountName')
         attribute_type = ATTRIBUTE_TYPES.get(attribute)
 
         data = '''mutation {{
@@ -505,7 +507,7 @@ class PreemptConnector(BaseConnector):
 
         username = param['username']
         domain = param['domain']
-        attribute = param.get('attribute_type','samAccountName')
+        attribute = param.get('attribute_type', 'samAccountName')
         attribute_type = ATTRIBUTE_TYPES.get(attribute)
 
         data = '''mutation {{
@@ -695,7 +697,8 @@ class PreemptConnector(BaseConnector):
 
     def _get_artifact_id(self, sdi, container_id):
 
-        url = '{0}rest/artifact?_filter_source_data_identifier="{1}"&_filter_container_id={2}'.format(self.get_phantom_base_url(), sdi, container_id)
+        url = '{0}rest/artifact?_filter_source_data_identifier="{1}"&_filter_container_id={2}'.format(self.get_phantom_base_url(),
+            sdi, container_id)
 
         try:
             r = requests.get(url, verify=False)
@@ -770,8 +773,10 @@ class PreemptConnector(BaseConnector):
 
     def _get_container_id(self, incident_id):
 
-        url = '{0}rest/container?_filter_source_data_identifier="{1}"&_filter_asset={2}'.format(self.get_phantom_base_url(), incident_id, self.get_asset_id())
-        # url = '{0}rest/container?_filter_source_data_identifier="{1}"&_filter_asset={2}'.format("https://172.16.182.130/", incident_id, self.get_asset_id())
+        url = '{0}rest/container?_filter_source_data_identifier="{1}"&_filter_asset={2}'.format(
+            self.get_phantom_base_url(), incident_id, self.get_asset_id())
+        # url = '{0}rest/container?_filter_source_data_identifier="{1}"&_filter_asset={2}'.format(
+        # "https://172.16.182.130/", incident_id, self.get_asset_id())
 
         try:
             r = requests.get(url, verify=False)
@@ -1132,8 +1137,9 @@ class PreemptConnector(BaseConnector):
 
 if __name__ == '__main__':
 
-    import pudb
     import argparse
+
+    import pudb
 
     pudb.set_trace()
 
@@ -1159,7 +1165,7 @@ if __name__ == '__main__':
         try:
             login_url = BaseConnector._get_phantom_base_url() + '/login'
 
-            print ("Accessing the Login page")
+            print("Accessing the Login page")
             r = requests.get(login_url, verify=False)
             csrftoken = r.cookies['csrftoken']
 
