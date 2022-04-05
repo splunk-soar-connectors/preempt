@@ -44,8 +44,10 @@ class PreemptConnector(BaseConnector):
         # Variable to hold a base_url in case the app makes REST calls
         # Do note that the app json defines the asset config, so please
         # modify this as you deem fit.
+        config = self.get_config()
         self.platform_address = None
         self.api_token = None
+        self._verify_server_cert = config.get(PREEMPT_JSON_VERIFY_SERVER_CERT, False)
 
     def _process_empty_response(self, response, action_result):
 
@@ -702,7 +704,7 @@ class PreemptConnector(BaseConnector):
             sdi, container_id)
 
         try:
-            r = requests.get(url, verify=False)
+            r = requests.get(url, verify=self._verify_server_cert, timeout=DEFAULT_REQUEST_TIMEOUT)
             resp_json = r.json()
         except Exception as e:
             self.debug_print("Unable to query Preempt artifact", e)
@@ -729,7 +731,7 @@ class PreemptConnector(BaseConnector):
         url = '{0}rest/container/{1}'.format(self.get_phantom_base_url(), container_id)
 
         try:
-            r = requests.post(url, data=json.dumps(updated), verify=False)
+            r = requests.post(url, data=json.dumps(updated), verify=self._verify_server_cert, timeout=DEFAULT_REQUEST_TIMEOUT)
             resp_json = r.json()
         except Exception as e:
             self.debug_print("Exception occurred while updating container", e)
@@ -780,7 +782,7 @@ class PreemptConnector(BaseConnector):
         # "https://172.16.182.130/", incident_id, self.get_asset_id())
 
         try:
-            r = requests.get(url, verify=False)
+            r = requests.get(url, verify=self._verify_server_cert, timeout=DEFAULT_REQUEST_TIMEOUT)
             resp_json = r.json()
         except Exception as e:
             self.debug_print("Unable to query Preempt incident container", e)
