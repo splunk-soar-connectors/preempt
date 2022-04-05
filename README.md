@@ -6,7 +6,7 @@ Connector Version: 2\.0\.4
 Product Vendor: Preempt  
 Product Name: Preempt Platform  
 Product Version Supported (regex): "\.\*"  
-Minimum Product Version: 4\.9\.39220  
+Minimum Product Version: 5\.1\.0  
 
 This app implements various incident management and investigative actions
 
