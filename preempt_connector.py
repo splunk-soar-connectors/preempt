@@ -1,21 +1,30 @@
 # File: preempt_connector.py
-# Copyright (c) 2019-2021 Splunk Inc.
 #
-# SPLUNK CONFIDENTIAL - Use or disclosure of this material in whole or in part
-# without a valid written license from Splunk Inc. is PROHIBITED.
-
-import phantom.app as phantom
-from phantom.base_connector import BaseConnector
-from phantom.action_result import ActionResult
-
-from preempt_consts import *
-import requests
-import json
-from bs4 import BeautifulSoup
-
+# Copyright (c) 2019-2022 Splunk Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software distributed under
+# the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied. See the License for the specific language governing permissions
+# and limitations under the License.
 import copy
+import json
+import sys
 import time
 from datetime import datetime
+
+import phantom.app as phantom
+import requests
+from bs4 import BeautifulSoup
+from phantom.action_result import ActionResult
+from phantom.base_connector import BaseConnector
+
+from preempt_consts import *
 
 
 class RetVal(tuple):
@@ -294,7 +303,8 @@ class PreemptConnector(BaseConnector):
                     types.remove(item)
                     # Remove the invalid types, but still query on the rest of the valid ones
             if len(types) == 0:
-                return action_result.set_status(phantom.APP_ERROR, "All types provided are invalid. Refer to Preempt TimelineEventType API documentation for valid types")
+                return action_result.set_status(phantom.APP_ERROR,
+                    "All types provided are invalid. Refer to Preempt TimelineEventType API documentation for valid types")
             types = "types: {}".format(types).replace("'", "")
 
         while True:
@@ -388,7 +398,8 @@ class PreemptConnector(BaseConnector):
         if len(invalid_types) == 1:
             summary['type_parameter_error'] = "{} is invalid and was not used in the query".format(invalid_types[0])
         elif len(invalid_types) > 1:
-            types_formatted = ''.join(["and {}".format(item) if idx + 1 == len(invalid_types) else "{}, ".format(item) for idx, item in enumerate(invalid_types)])
+            types_formatted = ''.join(["and {}".format(item) if idx + 1 == len(invalid_types)
+                else "{}, ".format(item) for idx, item in enumerate(invalid_types)])
             summary['type_parameter_error'] = "{} are invalid and were not used in the query".format(types_formatted)
 
         # Return success, no need to set the message, only the status
@@ -404,7 +415,7 @@ class PreemptConnector(BaseConnector):
 
         username = param['username']
         domain = param['domain']
-        attribute = param.get('attribute_type','samAccountName')
+        attribute = param.get('attribute_type', 'samAccountName')
         attribute_type = ATTRIBUTE_TYPES.get(attribute)
 
         data = '''{{
@@ -454,7 +465,7 @@ class PreemptConnector(BaseConnector):
 
         username = param['username']
         domain = param['domain']
-        attribute = param.get('attribute_type','samAccountName')
+        attribute = param.get('attribute_type', 'samAccountName')
         attribute_type = ATTRIBUTE_TYPES.get(attribute)
 
         data = '''mutation {{
@@ -497,7 +508,7 @@ class PreemptConnector(BaseConnector):
 
         username = param['username']
         domain = param['domain']
-        attribute = param.get('attribute_type','samAccountName')
+        attribute = param.get('attribute_type', 'samAccountName')
         attribute_type = ATTRIBUTE_TYPES.get(attribute)
 
         data = '''mutation {{
@@ -687,10 +698,13 @@ class PreemptConnector(BaseConnector):
 
     def _get_artifact_id(self, sdi, container_id):
 
-        url = '{0}rest/artifact?_filter_source_data_identifier="{1}"&_filter_container_id={2}'.format(self.get_phantom_base_url(), sdi, container_id)
+        config = self.get_config()
+        verify_server_cert = config.get(PREEMPT_JSON_VERIFY_SERVER_CERT, False)
+        url = '{0}rest/artifact?_filter_source_data_identifier="{1}"&_filter_container_id={2}'.format(self.get_phantom_base_url(),
+            sdi, container_id)
 
         try:
-            r = requests.get(url, verify=False)
+            r = requests.get(url, verify=verify_server_cert, timeout=DEFAULT_REQUEST_TIMEOUT)
             resp_json = r.json()
         except Exception as e:
             self.debug_print("Unable to query Preempt artifact", e)
@@ -710,6 +724,8 @@ class PreemptConnector(BaseConnector):
 
     def _update_container(self, incident, container_id, last_time):
 
+        config = self.get_config()
+        verify_server_cert = config.get(PREEMPT_JSON_VERIFY_SERVER_CERT, False)
         updated = dict()
         updated['data'] = incident
         updated['description'] = "{}: {}".format(incident['incidentId'], incident['type'])
@@ -717,7 +733,7 @@ class PreemptConnector(BaseConnector):
         url = '{0}rest/container/{1}'.format(self.get_phantom_base_url(), container_id)
 
         try:
-            r = requests.post(url, data=json.dumps(updated), verify=False)
+            r = requests.post(url, data=json.dumps(updated), verify=verify_server_cert, timeout=DEFAULT_REQUEST_TIMEOUT)
             resp_json = r.json()
         except Exception as e:
             self.debug_print("Exception occurred while updating container", e)
@@ -762,11 +778,15 @@ class PreemptConnector(BaseConnector):
 
     def _get_container_id(self, incident_id):
 
-        url = '{0}rest/container?_filter_source_data_identifier="{1}"&_filter_asset={2}'.format(self.get_phantom_base_url(), incident_id, self.get_asset_id())
-        # url = '{0}rest/container?_filter_source_data_identifier="{1}"&_filter_asset={2}'.format("https://172.16.182.130/", incident_id, self.get_asset_id())
+        config = self.get_config()
+        verify_server_cert = config.get(PREEMPT_JSON_VERIFY_SERVER_CERT, False)
+        url = '{0}rest/container?_filter_source_data_identifier="{1}"&_filter_asset={2}'.format(
+            self.get_phantom_base_url(), incident_id, self.get_asset_id())
+        # url = '{0}rest/container?_filter_source_data_identifier="{1}"&_filter_asset={2}'.format(
+        # "https://172.16.182.130/", incident_id, self.get_asset_id())
 
         try:
-            r = requests.get(url, verify=False)
+            r = requests.get(url, verify=verify_server_cert, timeout=DEFAULT_REQUEST_TIMEOUT)
             resp_json = r.json()
         except Exception as e:
             self.debug_print("Unable to query Preempt incident container", e)
@@ -1124,8 +1144,9 @@ class PreemptConnector(BaseConnector):
 
 if __name__ == '__main__':
 
-    import pudb
     import argparse
+
+    import pudb
 
     pudb.set_trace()
 
@@ -1134,12 +1155,14 @@ if __name__ == '__main__':
     argparser.add_argument('input_test_json', help='Input Test JSON file')
     argparser.add_argument('-u', '--username', help='username', required=False)
     argparser.add_argument('-p', '--password', help='password', required=False)
+    argparser.add_argument('-v', '--verify', action='store_true', help='verify', required=False, default=False)
 
     args = argparser.parse_args()
     session_id = None
 
     username = args.username
     password = args.password
+    verify = args.verify
 
     if username is not None and password is None:
 
@@ -1151,8 +1174,8 @@ if __name__ == '__main__':
         try:
             login_url = BaseConnector._get_phantom_base_url() + '/login'
 
-            print ("Accessing the Login page")
-            r = requests.get(login_url, verify=False)
+            print("Accessing the Login page")
+            r = requests.get(login_url, verify=verify, timeout=DEFAULT_REQUEST_TIMEOUT)
             csrftoken = r.cookies['csrftoken']
 
             data = dict()
@@ -1165,11 +1188,11 @@ if __name__ == '__main__':
             headers['Referer'] = login_url
 
             print("Logging into Platform to get the session id")
-            r2 = requests.post(login_url, verify=False, data=data, headers=headers)
+            r2 = requests.post(login_url, verify=verify, data=data, headers=headers, timeout=DEFAULT_REQUEST_TIMEOUT)
             session_id = r2.cookies['sessionid']
         except Exception as e:
             print("Unable to get session id from the platform. Error: " + str(e))
-            exit(1)
+            sys.exit(1)
 
     with open(args.input_test_json) as f:
         in_json = f.read()
@@ -1186,4 +1209,4 @@ if __name__ == '__main__':
         ret_val = connector._handle_action(json.dumps(in_json), None)
         print(json.dumps(json.loads(ret_val), indent=4))
 
-    exit(0)
+    sys.exit(0)
