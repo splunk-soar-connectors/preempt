@@ -698,11 +698,13 @@ class PreemptConnector(BaseConnector):
 
     def _get_artifact_id(self, sdi, container_id):
 
+        config = self.get_config()
+        verify_server_cert = config.get(PREEMPT_JSON_VERIFY_SERVER_CERT, False)
         url = '{0}rest/artifact?_filter_source_data_identifier="{1}"&_filter_container_id={2}'.format(self.get_phantom_base_url(),
             sdi, container_id)
 
         try:
-            r = requests.get(url, verify=False)
+            r = requests.get(url, verify=verify_server_cert, timeout=DEFAULT_REQUEST_TIMEOUT)
             resp_json = r.json()
         except Exception as e:
             self.debug_print("Unable to query Preempt artifact", e)
@@ -722,6 +724,8 @@ class PreemptConnector(BaseConnector):
 
     def _update_container(self, incident, container_id, last_time):
 
+        config = self.get_config()
+        verify_server_cert = config.get(PREEMPT_JSON_VERIFY_SERVER_CERT, False)
         updated = dict()
         updated['data'] = incident
         updated['description'] = "{}: {}".format(incident['incidentId'], incident['type'])
@@ -729,7 +733,7 @@ class PreemptConnector(BaseConnector):
         url = '{0}rest/container/{1}'.format(self.get_phantom_base_url(), container_id)
 
         try:
-            r = requests.post(url, data=json.dumps(updated), verify=False)
+            r = requests.post(url, data=json.dumps(updated), verify=verify_server_cert, timeout=DEFAULT_REQUEST_TIMEOUT)
             resp_json = r.json()
         except Exception as e:
             self.debug_print("Exception occurred while updating container", e)
@@ -774,13 +778,15 @@ class PreemptConnector(BaseConnector):
 
     def _get_container_id(self, incident_id):
 
+        config = self.get_config()
+        verify_server_cert = config.get(PREEMPT_JSON_VERIFY_SERVER_CERT, False)
         url = '{0}rest/container?_filter_source_data_identifier="{1}"&_filter_asset={2}'.format(
             self.get_phantom_base_url(), incident_id, self.get_asset_id())
         # url = '{0}rest/container?_filter_source_data_identifier="{1}"&_filter_asset={2}'.format(
         # "https://172.16.182.130/", incident_id, self.get_asset_id())
 
         try:
-            r = requests.get(url, verify=False)
+            r = requests.get(url, verify=verify_server_cert, timeout=DEFAULT_REQUEST_TIMEOUT)
             resp_json = r.json()
         except Exception as e:
             self.debug_print("Unable to query Preempt incident container", e)

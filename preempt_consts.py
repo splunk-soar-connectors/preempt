@@ -64,3 +64,4 @@ TIMELINE_EVENT_TYPES_LIST = ['SUCCESSFUL_AUTHENTICATION', 'FAILED_AUTHENTICATION
 PREEMPT_ERR_FAILURES = "Some incidents had issues during ingestion; see logs for details."
 PREEMPT_INVALID_UPDATE_INCIDENT_PARAMS = "At least one of either stage and reason OR comment parameters must be included in action request"
 DEFAULT_REQUEST_TIMEOUT = 30  # in seconds
+PREEMPT_JSON_VERIFY_SERVER_CERT = "verify_server_cert"
