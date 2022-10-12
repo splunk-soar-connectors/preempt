@@ -10,7 +10,7 @@
     "product_version_regex": ".*",
     "publisher": "Splunk Community",
     "license": "Copyright (c) 2019-2022 Splunk Inc.",
-    "app_version": "2.1.0",
+    "app_version": "3.0.0",
     "utctime_updated": "2022-03-17T18:48:27.000000Z",
     "package_name": "phantom_preempt",
     "main_module": "preempt_connector.py",
