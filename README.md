@@ -1,8 +1,8 @@
 [comment]: # "Auto-generated SOAR connector documentation"
 # Preempt
 
-Publisher: Splunk  
-Connector Version: 2\.0\.4  
+Publisher: Splunk Community  
+Connector Version: 3\.0\.0  
 Product Vendor: Preempt  
 Product Name: Preempt Platform  
 Product Version Supported (regex): "\.\*"  
@@ -136,8 +136,8 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
-action\_result\.parameter\.attribute\_type | string | 
 action\_result\.status | string | 
+action\_result\.parameter\.attribute\_type | string | 
 action\_result\.parameter\.domain | string |  `domain`  `url` 
 action\_result\.parameter\.username | string |  `preempt user name` 
 action\_result\.data\.\*\.riskFactors\.\*\.type | string | 
@@ -164,8 +164,8 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
-action\_result\.parameter\.attribute\_type | string | 
 action\_result\.status | string | 
+action\_result\.parameter\.attribute\_type | string | 
 action\_result\.parameter\.domain | string |  `domain`  `url` 
 action\_result\.parameter\.username | string |  `preempt user name` 
 action\_result\.data\.\*\.updatedEntities\.\*\.primaryDisplayName | string | 
@@ -191,8 +191,8 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
-action\_result\.parameter\.attribute\_type | string | 
 action\_result\.status | string | 
+action\_result\.parameter\.attribute\_type | string | 
 action\_result\.parameter\.domain | string |  `domain`  `url` 
 action\_result\.parameter\.username | string |  `preempt user name` 
 action\_result\.data\.\*\.updatedEntities\.\*\.primaryDisplayName | string | 
@@ -217,7 +217,6 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
 action\_result\.status | string | 
-action\_result\.data\.\*\.incidentId | string | 
 action\_result\.parameter\.incident\_number | numeric |  `preempt incident id` 
 action\_result\.data\.\*\.alertEvents\.\*\.alertId | string | 
 action\_result\.data\.\*\.alertEvents\.\*\.alertType | string | 
@@ -232,6 +231,7 @@ action\_result\.data\.\*\.compromisedEntities\.\*\.accounts\.\*\.archived | bool
 action\_result\.data\.\*\.compromisedEntities\.\*\.accounts\.\*\.dataSource | string | 
 action\_result\.data\.\*\.compromisedEntities\.\*\.accounts\.\*\.enabled | boolean | 
 action\_result\.data\.\*\.endTime | string | 
+action\_result\.data\.\*\.incidentId | string | 
 action\_result\.data\.\*\.lifeCycleStage | string | 
 action\_result\.data\.\*\.markedAsRead | boolean | 
 action\_result\.data\.\*\.severity | string | 
