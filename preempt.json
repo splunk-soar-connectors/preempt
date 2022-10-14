@@ -768,13 +768,6 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.data.*.comments.*.author.username",
-                    "data_type": "string",
-                    "example_values": [
-                        "admin"
-                    ]
-                },
-                {
                     "data_path": "action_result.data.*.comments.*.text",
                     "data_type": "string",
                     "example_values": [

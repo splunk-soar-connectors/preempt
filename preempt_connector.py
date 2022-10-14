@@ -575,7 +575,6 @@ class PreemptConnector(BaseConnector):
                     author {{
                         displayName
                         type
-                        username
                     }}
                     text
                     timestamp
@@ -808,7 +807,7 @@ class PreemptConnector(BaseConnector):
 
         artifact = dict()
 
-        artifact['name'] = '{} by {} ({})'.format(base_name, comment['author']['username'], comment['author']['displayName'])
+        artifact['name'] = '{} by {}'.format(base_name, comment['author']['displayName'])
         artifact['label'] = 'comment'
         artifact['container_id'] = container_id
         # Comments do not have IDs, so using timestamp instead
@@ -818,7 +817,6 @@ class PreemptConnector(BaseConnector):
 
         artifact_cef['body'] = comment['text']
         artifact_cef['created'] = comment['timestamp']
-        artifact_cef['author_username'] = comment['author']['username']
         artifact_cef['author_display_name'] = comment['author']['displayName']
 
         artifact['cef'] = artifact_cef
@@ -962,7 +960,6 @@ class PreemptConnector(BaseConnector):
                         text
                         timestamp
                         author {{
-                            username
                             displayName
                         }}
                     }}
