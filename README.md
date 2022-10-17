@@ -6,7 +6,7 @@ Connector Version: 3\.0\.0
 Product Vendor: Preempt  
 Product Name: Preempt Platform  
 Product Version Supported (regex): "\.\*"  
-Minimum Product Version: 5\.1\.0  
+Minimum Product Version: 5\.3\.4  
 
 This app implements various incident management and investigative actions
 
@@ -30,6 +30,12 @@ menu. Once in the Administration panel, navigate to **Connectors** . Under **API
 
 Valid values for the **type** parameter for the **get user activity** action are noted in Preempt
 API documentation, found at **\<platform_address>/api-documentation/enum/TimelineEventType**
+
+## Playbook Backward Compatibility
+
+-   The "author_username" field has been removed from the cef dictionary of the artifact. Hence, it
+    is requested to update existing playbooks created in the earlier versions of the app by
+    re-inserting \| modifying \| deleting the corresponding action blocks.
 
 
 ### Configuration Variables
@@ -224,7 +230,6 @@ action\_result\.data\.\*\.alertEvents\.\*\.endTime | string |
 action\_result\.data\.\*\.alertEvents\.\*\.endpointEntity | string | 
 action\_result\.data\.\*\.comments\.\*\.author\.displayName | string | 
 action\_result\.data\.\*\.comments\.\*\.author\.type | string | 
-action\_result\.data\.\*\.comments\.\*\.author\.username | string | 
 action\_result\.data\.\*\.comments\.\*\.text | string | 
 action\_result\.data\.\*\.comments\.\*\.timestamp | string | 
 action\_result\.data\.\*\.compromisedEntities\.\*\.accounts\.\*\.archived | boolean | 
