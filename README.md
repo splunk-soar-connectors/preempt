@@ -1,8 +1,8 @@
 [comment]: # "Auto-generated SOAR connector documentation"
 # Preempt
 
-Publisher: Splunk  
-Connector Version: 2\.0\.4  
+Publisher: Splunk Community  
+Connector Version: 3\.0\.0  
 Product Vendor: Preempt  
 Product Name: Preempt Platform  
 Product Version Supported (regex): "\.\*"  
@@ -30,6 +30,12 @@ menu. Once in the Administration panel, navigate to **Connectors** . Under **API
 
 Valid values for the **type** parameter for the **get user activity** action are noted in Preempt
 API documentation, found at **\<platform_address>/api-documentation/enum/TimelineEventType**
+
+## Playbook Backward Compatibility
+
+-   The "author_username" field has been removed from the cef dictionary of the artifact. Hence, it
+    is requested to update existing playbooks created in the earlier versions of the app by
+    re-inserting \| modifying \| deleting the corresponding action blocks.
 
 
 ### Configuration Variables
@@ -136,8 +142,8 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
-action\_result\.parameter\.attribute\_type | string | 
 action\_result\.status | string | 
+action\_result\.parameter\.attribute\_type | string | 
 action\_result\.parameter\.domain | string |  `domain`  `url` 
 action\_result\.parameter\.username | string |  `preempt user name` 
 action\_result\.data\.\*\.riskFactors\.\*\.type | string | 
@@ -164,8 +170,8 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
-action\_result\.parameter\.attribute\_type | string | 
 action\_result\.status | string | 
+action\_result\.parameter\.attribute\_type | string | 
 action\_result\.parameter\.domain | string |  `domain`  `url` 
 action\_result\.parameter\.username | string |  `preempt user name` 
 action\_result\.data\.\*\.updatedEntities\.\*\.primaryDisplayName | string | 
@@ -191,8 +197,8 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
-action\_result\.parameter\.attribute\_type | string | 
 action\_result\.status | string | 
+action\_result\.parameter\.attribute\_type | string | 
 action\_result\.parameter\.domain | string |  `domain`  `url` 
 action\_result\.parameter\.username | string |  `preempt user name` 
 action\_result\.data\.\*\.updatedEntities\.\*\.primaryDisplayName | string | 
@@ -217,7 +223,6 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
 action\_result\.status | string | 
-action\_result\.data\.\*\.incidentId | string | 
 action\_result\.parameter\.incident\_number | numeric |  `preempt incident id` 
 action\_result\.data\.\*\.alertEvents\.\*\.alertId | string | 
 action\_result\.data\.\*\.alertEvents\.\*\.alertType | string | 
@@ -225,13 +230,13 @@ action\_result\.data\.\*\.alertEvents\.\*\.endTime | string |
 action\_result\.data\.\*\.alertEvents\.\*\.endpointEntity | string | 
 action\_result\.data\.\*\.comments\.\*\.author\.displayName | string | 
 action\_result\.data\.\*\.comments\.\*\.author\.type | string | 
-action\_result\.data\.\*\.comments\.\*\.author\.username | string | 
 action\_result\.data\.\*\.comments\.\*\.text | string | 
 action\_result\.data\.\*\.comments\.\*\.timestamp | string | 
 action\_result\.data\.\*\.compromisedEntities\.\*\.accounts\.\*\.archived | boolean | 
 action\_result\.data\.\*\.compromisedEntities\.\*\.accounts\.\*\.dataSource | string | 
 action\_result\.data\.\*\.compromisedEntities\.\*\.accounts\.\*\.enabled | boolean | 
 action\_result\.data\.\*\.endTime | string | 
+action\_result\.data\.\*\.incidentId | string | 
 action\_result\.data\.\*\.lifeCycleStage | string | 
 action\_result\.data\.\*\.markedAsRead | boolean | 
 action\_result\.data\.\*\.severity | string | 
