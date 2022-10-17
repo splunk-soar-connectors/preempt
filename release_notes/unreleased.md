@@ -1,1 +1,3 @@
 **Unreleased**
+* De-certifying and releasing as a community app
+* Bug fix related to 'username' key in the 'get incident' and 'on poll' action [PAPP-24545]
