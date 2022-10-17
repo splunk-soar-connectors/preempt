@@ -24,7 +24,12 @@ and limitations under the License.
   <p>
     Valid values for the <b>type</b> parameter for the <b>get user activity</b> action are noted in Preempt API documentation, found at <b>&#60;platform_address&#62;/api-documentation/enum/TimelineEventType</b>
   </p>
-
+  <h2>Playbook Backward Compatibility</h2>
+	<p>
+		<ul>
+			<li>The "author_username" field has been removed from the cef dictionary of the artifact. Hence, it is requested to update existing playbooks created in the earlier versions of the app by re-inserting | modifying | deleting the corresponding action blocks.</li>
+		</ul>
+	</p>
 </body>
 
 </html>
