@@ -1,6 +1,6 @@
 # File: preempt_connector.py
 #
-# Copyright (c) 2019-2022 Splunk Inc.
+# Copyright (c) 2019-2025 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,11 +33,9 @@ class RetVal(tuple):
 
 
 class PreemptConnector(BaseConnector):
-
     def __init__(self):
-
         # Call the BaseConnectors init first
-        super(PreemptConnector, self).__init__()
+        super().__init__()
 
         self._state = None
 
@@ -48,14 +46,12 @@ class PreemptConnector(BaseConnector):
         self.api_token = None
 
     def _process_empty_response(self, response, action_result):
-
         if response.status_code == 200:
             return RetVal(phantom.APP_SUCCESS, {})
 
         return RetVal(action_result.set_status(phantom.APP_ERROR, "Empty response and no information in the header"), None)
 
     def _process_html_response(self, response, action_result):
-
         # An html response, treat it like an error
         status_code = response.status_code
 
@@ -65,44 +61,43 @@ class PreemptConnector(BaseConnector):
             for element in soup(["script", "style", "footer", "nav"]):
                 element.extract()
             error_text = soup.text
-            split_lines = error_text.split('\n')
+            split_lines = error_text.split("\n")
             split_lines = [x.strip() for x in split_lines if x.strip()]
-            error_text = '\n'.join(split_lines).encode('ascii', 'ignore').strip()
+            error_text = "\n".join(split_lines).encode("ascii", "ignore").strip()
         except:
             error_text = "Cannot parse error details"
 
         if error_text:
-            self.debug_print("Status Code: {0}. Data from server: {1}".format(status_code, error_text))
+            self.debug_print(f"Status Code: {status_code}. Data from server: {error_text}")
             message = "Error while connecting to the server."
 
-        message = message.replace('{', '{{').replace('}', '}}')
+        message = message.replace("{", "{{").replace("}", "}}")
 
         return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
 
     def _process_json_response(self, r, action_result):
-
         # Try a json parse
         try:
             resp_json = r.json()
         except Exception as e:
-            return RetVal(action_result.set_status(phantom.APP_ERROR, "Unable to parse JSON response. Error: {0}".format(str(e))), None)
+            return RetVal(action_result.set_status(phantom.APP_ERROR, f"Unable to parse JSON response. Error: {e!s}"), None)
 
         # Please specify the status codes here
         if 200 <= r.status_code < 399:
             return RetVal(phantom.APP_SUCCESS, resp_json)
 
         msg = []
-        if resp_json.get('errors'):
-            for error in resp_json.get('errors'):
-                msg.append(error.get('message').strip('.'))
+        if resp_json.get("errors"):
+            for error in resp_json.get("errors"):
+                msg.append(error.get("message").strip("."))
 
         if msg:
-            message = "Error from server. Status Code: {0} Data from server: {1}".format(
-                r.status_code, '.'.join(msg))
+            message = "Error from server. Status Code: {} Data from server: {}".format(r.status_code, ".".join(msg))
         else:
             # You should process the error returned in the json
-            message = "Error from server. Status Code: {0} Data from server: {1}".format(
-                    r.status_code, r.text.replace('{', '{{').replace('}', '}}'))
+            message = "Error from server. Status Code: {} Data from server: {}".format(
+                r.status_code, r.text.replace("{", "{{").replace("}", "}}")
+            )
 
         if "Method Not Allowed" in message:
             message = "Method not allowed"
@@ -113,24 +108,23 @@ class PreemptConnector(BaseConnector):
         return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
 
     def _process_response(self, r, action_result):
-
         # store the r_text in debug data, it will get dumped in the logs if the action fails
-        if hasattr(action_result, 'add_debug_data'):
-            action_result.add_debug_data({'r_status_code': r.status_code})
-            action_result.add_debug_data({'r_text': r.text})
-            action_result.add_debug_data({'r_headers': r.headers})
+        if hasattr(action_result, "add_debug_data"):
+            action_result.add_debug_data({"r_status_code": r.status_code})
+            action_result.add_debug_data({"r_text": r.text})
+            action_result.add_debug_data({"r_headers": r.headers})
 
         # Process each 'Content-Type' of response separately
 
         # Process a json response
-        if 'json' in r.headers.get('Content-Type', ''):
+        if "json" in r.headers.get("Content-Type", ""):
             return self._process_json_response(r, action_result)
 
         # Process an HTML response, Do this no matter what the api talks.
         # There is a high chance of a PROXY in between phantom and the rest of
         # world, in case of errors, PROXY's return HTML, this function parses
         # the error and adds it to the action_result.
-        if 'html' in r.headers.get('Content-Type', ''):
+        if "html" in r.headers.get("Content-Type", ""):
             return self._process_html_response(r, action_result)
 
         # it's not content-type that is to be parsed, handle an empty response
@@ -138,8 +132,9 @@ class PreemptConnector(BaseConnector):
             return self._process_empty_response(r, action_result)
 
         # everything else is actually an error at this point
-        message = "Can't process response from server. Status Code: {0} Data from server: {1}".format(
-                r.status_code, r.text.replace('{', '{{').replace('}', '}}'))
+        message = "Can't process response from server. Status Code: {} Data from server: {}".format(
+            r.status_code, r.text.replace("{", "{{").replace("}", "}}")
+        )
 
         return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
 
@@ -153,36 +148,27 @@ class PreemptConnector(BaseConnector):
         try:
             request_func = getattr(requests, method)
         except AttributeError:
-            return RetVal(action_result.set_status(phantom.APP_ERROR, "Invalid method: {0}".format(method)), resp_json)
+            return RetVal(action_result.set_status(phantom.APP_ERROR, f"Invalid method: {method}"), resp_json)
 
         # Create a URL to connect to
-        url = self.platform_address + '/api/public/graphql'
+        url = self.platform_address + "/api/public/graphql"
 
-        headers = {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer {}'.format(self.api_token)
-        }
+        headers = {"Content-Type": "application/json", "Authorization": f"Bearer {self.api_token}"}
 
         try:
-            r = request_func(
-                            url,
-                            headers=headers,
-                            json={'query': data},
-                            verify=config.get('verify_server_cert', False),
-                            **kwargs)
+            r = request_func(url, headers=headers, json={"query": data}, verify=config.get("verify_server_cert", False), **kwargs)
         except Exception as e:
-            return RetVal(action_result.set_status(phantom.APP_ERROR, "Error Connecting to server. Details: {0}".format(str(e))), resp_json)
+            return RetVal(action_result.set_status(phantom.APP_ERROR, f"Error Connecting to server. Details: {e!s}"), resp_json)
 
         return self._process_response(r, action_result)
 
     def _handle_test_connectivity(self, param):
-
         # Add an action result object to self (BaseConnector) to represent the action for this param
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         self.save_progress("Retrieving Administrator Role entity")
 
-        data = '''{
+        data = """{
             entities(
             roles: [BuiltinAdministratorRole],first: 1){
                 nodes {
@@ -190,7 +176,7 @@ class PreemptConnector(BaseConnector):
                 secondaryDisplayName
                 }
             }
-        }'''
+        }"""
 
         # make rest call
         ret_val, response = self._make_rest_call(action_result, data=data)
@@ -203,19 +189,18 @@ class PreemptConnector(BaseConnector):
         return action_result.set_status(phantom.APP_SUCCESS)
 
     def _handle_get_user_attributes(self, param):
-
-        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        self.save_progress(f"In action handler for: {self.get_action_identifier()}")
 
         # Add an action result object to self (BaseConnector) to represent the action for this param
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        username = param['attribute_value']
-        attribute = param['attribute_type']
-        domain = param['domain']
+        username = param["attribute_value"]
+        attribute = param["attribute_type"]
+        domain = param["domain"]
 
         attribute_type = ATTRIBUTE_TYPES.get(attribute)
 
-        data = '''{{
+        data = f'''{{
             entities({attribute_type}: "{username}"
                     domains: "{domain}"
                     archived: false
@@ -257,7 +242,7 @@ class PreemptConnector(BaseConnector):
                     }}
                 }}
             }}
-        }}'''.format(attribute_type=attribute_type, username=username, domain=domain)
+        }}'''
 
         # make rest call
         ret_val, response = self._make_rest_call(action_result, data=data)
@@ -265,18 +250,18 @@ class PreemptConnector(BaseConnector):
         if phantom.is_fail(ret_val):
             return action_result.get_status()
 
-        result = response.get('data', {}).get('entities', {}).get('nodes', [])
+        result = response.get("data", {}).get("entities", {}).get("nodes", [])
 
         summary = action_result.update_summary({})
 
         if len(result) > 0:
             action_result.add_data(result[0])
-            summary['risk_score'] = float(result[0].get('riskScore')) * 10
-            summary['primary_display_name'] = result[0].get('primaryDisplayName')
+            summary["risk_score"] = float(result[0].get("riskScore")) * 10
+            summary["primary_display_name"] = result[0].get("primaryDisplayName")
         else:
-            action_result.add_data({ 'riskScore': 'Unavailable' })
-            action_result.add_data({ 'primaryDisplayName': 'Unavailable' })
-            summary['result'] = "Attribute type, attribute value, and domain combination not found"
+            action_result.add_data({"riskScore": "Unavailable"})
+            action_result.add_data({"primaryDisplayName": "Unavailable"})
+            summary["result"] = "Attribute type, attribute value, and domain combination not found"
             return action_result.set_status(phantom.APP_ERROR)
 
         # Return success, no need to set the message, only the status
@@ -284,18 +269,17 @@ class PreemptConnector(BaseConnector):
         return action_result.set_status(phantom.APP_SUCCESS)
 
     def _handle_get_user_activity(self, param):
-
-        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        self.save_progress(f"In action handler for: {self.get_action_identifier()}")
 
         # Add an action result object to self (BaseConnector) to represent the action for this param
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        types = param.get('types')
+        types = param.get("types")
         invalid_types = list()
         if types is None:
-            types = "types: {}".format(TIMELINE_EVENT_TYPES)
+            types = f"types: {TIMELINE_EVENT_TYPES}"
         else:
-            types = [i.strip().upper() for i in types.split(',')]
+            types = [i.strip().upper() for i in types.split(",")]
             types_list = copy.deepcopy(types)
             for item in types_list:
                 if item not in TIMELINE_EVENT_TYPES_LIST:
@@ -303,16 +287,16 @@ class PreemptConnector(BaseConnector):
                     types.remove(item)
                     # Remove the invalid types, but still query on the rest of the valid ones
             if len(types) == 0:
-                return action_result.set_status(phantom.APP_ERROR,
-                    "All types provided are invalid. Refer to Preempt TimelineEventType API documentation for valid types")
-            types = "types: {}".format(types).replace("'", "")
+                return action_result.set_status(
+                    phantom.APP_ERROR, "All types provided are invalid. Refer to Preempt TimelineEventType API documentation for valid types"
+                )
+            types = f"types: {types}".replace("'", "")
 
         while True:
+            username = param["username"]
+            start_time = param["start_time"]
 
-            username = param['username']
-            start_time = param['start_time']
-
-            limit = param.get('limit', None)
+            limit = param.get("limit", None)
             if limit is None:
                 result_limit = 1000  # Minimize the number of REST calls made by using max limit
             elif bool(limit) is True and int(limit) <= 0:
@@ -322,11 +306,11 @@ class PreemptConnector(BaseConnector):
             else:
                 result_limit = int(limit)
 
-            after = param.get('after', None)
+            after = param.get("after", None)
             if after is None:
-                after = ''
+                after = ""
 
-            data = '''{{
+            data = f'''{{
                 timeline(sourceEntityQuery: {{ samAccountNames: "{username}" }}
                         startTime: "{start_time}"
                         {after}
@@ -362,7 +346,7 @@ class PreemptConnector(BaseConnector):
                         hasNextPage
                     }}
                 }}
-            }}'''.format(username=username, start_time=start_time, after=after, types=types, result_limit=result_limit)
+            }}'''
 
             # make rest call
             ret_val, response = self._make_rest_call(action_result, data=data)
@@ -370,8 +354,8 @@ class PreemptConnector(BaseConnector):
             if phantom.is_fail(ret_val):
                 return action_result.get_status()
 
-            result = response.get('data', {}).get('timeline', {})
-            nodes = result.get('nodes', [])
+            result = response.get("data", {}).get("timeline", {})
+            nodes = result.get("nodes", [])
 
             if limit is not None and len(action_result.get_data()) + len(nodes) > int(result_limit):
                 for item in nodes:
@@ -382,9 +366,9 @@ class PreemptConnector(BaseConnector):
             else:
                 action_result.update_data(nodes)
 
-            has_next_page = result.get('pageInfo', {}).get('hasNextPage', False)
+            has_next_page = result.get("pageInfo", {}).get("hasNextPage", False)
             if has_next_page is True and len(action_result.get_data()) < result_limit:
-                param.update({ 'after': 'after: "{}"'.format(result['pageInfo']['endCursor']) })
+                param.update({"after": 'after: "{}"'.format(result["pageInfo"]["endCursor"])})
             else:
                 break
 
@@ -393,32 +377,32 @@ class PreemptConnector(BaseConnector):
             return action_result.set_status(phantom.APP_ERROR, "No activity found for user")
 
         summary = action_result.update_summary({})
-        summary['num_results'] = num_results
+        summary["num_results"] = num_results
 
         if len(invalid_types) == 1:
-            summary['type_parameter_error'] = "{} is invalid and was not used in the query".format(invalid_types[0])
+            summary["type_parameter_error"] = f"{invalid_types[0]} is invalid and was not used in the query"
         elif len(invalid_types) > 1:
-            types_formatted = ''.join(["and {}".format(item) if idx + 1 == len(invalid_types)
-                else "{}, ".format(item) for idx, item in enumerate(invalid_types)])
-            summary['type_parameter_error'] = "{} are invalid and were not used in the query".format(types_formatted)
+            types_formatted = "".join(
+                [f"and {item}" if idx + 1 == len(invalid_types) else f"{item}, " for idx, item in enumerate(invalid_types)]
+            )
+            summary["type_parameter_error"] = f"{types_formatted} are invalid and were not used in the query"
 
         # Return success, no need to set the message, only the status
         # BaseConnector will create a textual message based off of the summary dictionary
         return action_result.set_status(phantom.APP_SUCCESS)
 
     def _handle_get_user_risk(self, param):
-
-        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        self.save_progress(f"In action handler for: {self.get_action_identifier()}")
 
         # Add an action result object to self (BaseConnector) to represent the action for this param
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        username = param['username']
-        domain = param['domain']
-        attribute = param.get('attribute_type', 'samAccountName')
+        username = param["username"]
+        domain = param["domain"]
+        attribute = param.get("attribute_type", "samAccountName")
         attribute_type = ATTRIBUTE_TYPES.get(attribute)
 
-        data = '''{{
+        data = f'''{{
             entities({attribute_type}: "{username}"
                     domains: "{domain}"
                     archived: false
@@ -432,7 +416,7 @@ class PreemptConnector(BaseConnector):
                     }}
                 }}
             }}
-        }}'''.format(attribute_type=attribute_type, username=username, domain=domain)
+        }}'''
 
         # make rest call
         ret_val, response = self._make_rest_call(action_result, data=data)
@@ -440,16 +424,16 @@ class PreemptConnector(BaseConnector):
         if phantom.is_fail(ret_val):
             return action_result.get_status()
 
-        result = response.get('data', {}).get('entities', {}).get('nodes', [])
+        result = response.get("data", {}).get("entities", {}).get("nodes", [])
 
         summary = action_result.update_summary({})
 
         if len(result) > 0:
             action_result.add_data(result[0])
-            summary['risk_score'] = float(result[0].get('riskScore')) * 10
+            summary["risk_score"] = float(result[0].get("riskScore")) * 10
         else:
-            action_result.add_data({ 'riskScore': 'Unavailable' })
-            summary['result'] = "Username and domain combination not found"
+            action_result.add_data({"riskScore": "Unavailable"})
+            summary["result"] = "Username and domain combination not found"
             return action_result.set_status(phantom.APP_ERROR)
 
         # Return success, no need to set the message, only the status
@@ -457,18 +441,17 @@ class PreemptConnector(BaseConnector):
         return action_result.set_status(phantom.APP_SUCCESS)
 
     def _handle_watch_user(self, param):
-
-        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        self.save_progress(f"In action handler for: {self.get_action_identifier()}")
 
         # Add an action result object to self (BaseConnector) to represent the action for this param
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        username = param['username']
-        domain = param['domain']
-        attribute = param.get('attribute_type', 'samAccountName')
+        username = param["username"]
+        domain = param["domain"]
+        attribute = param.get("attribute_type", "samAccountName")
         attribute_type = ATTRIBUTE_TYPES.get(attribute)
 
-        data = '''mutation {{
+        data = f'''mutation {{
             addEntitiesToWatchList(input: {{ entityQuery: {{ {attribute_type}: "{username}", domains: "{domain}" }} }})
             {{
                 updatedEntities
@@ -477,7 +460,7 @@ class PreemptConnector(BaseConnector):
                 secondaryDisplayName
                 }}
             }}
-        }}'''.format(attribute_type=attribute_type, username=username, domain=domain)
+        }}'''
 
         # make rest call
         ret_val, response = self._make_rest_call(action_result, data=data)
@@ -485,33 +468,32 @@ class PreemptConnector(BaseConnector):
         if phantom.is_fail(ret_val):
             return action_result.get_status()
 
-        result = response.get('data', {}).get('addEntitiesToWatchList', {})
+        result = response.get("data", {}).get("addEntitiesToWatchList", {})
         action_result.add_data(result)
 
         summary = action_result.update_summary({})
-        if len(result.get('updatedEntities', [])) == 0:
-            summary['result'] = "No entities updated"
+        if len(result.get("updatedEntities", [])) == 0:
+            summary["result"] = "No entities updated"
             return action_result.set_status(phantom.APP_ERROR)
         else:
-            summary['result'] = "{} was added to the watch list".format(result['updatedEntities'][0]['primaryDisplayName'])
+            summary["result"] = "{} was added to the watch list".format(result["updatedEntities"][0]["primaryDisplayName"])
 
         # Return success, no need to set the message, only the status
         # BaseConnector will create a textual message based off of the summary dictionary
         return action_result.set_status(phantom.APP_SUCCESS)
 
     def _handle_unwatch_user(self, param):
-
-        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        self.save_progress(f"In action handler for: {self.get_action_identifier()}")
 
         # Add an action result object to self (BaseConnector) to represent the action for this param
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        username = param['username']
-        domain = param['domain']
-        attribute = param.get('attribute_type', 'samAccountName')
+        username = param["username"]
+        domain = param["domain"]
+        attribute = param.get("attribute_type", "samAccountName")
         attribute_type = ATTRIBUTE_TYPES.get(attribute)
 
-        data = '''mutation {{
+        data = f'''mutation {{
             removeEntitiesFromWatchList(input: {{ entityQuery: {{ {attribute_type}: "{username}", domains: "{domain}" }} }})
             {{
                 updatedEntities
@@ -520,7 +502,7 @@ class PreemptConnector(BaseConnector):
                 secondaryDisplayName
                 }}
             }}
-        }}'''.format(attribute_type=attribute_type, username=username, domain=domain)
+        }}'''
 
         # make rest call
         ret_val, response = self._make_rest_call(action_result, data=data)
@@ -528,30 +510,29 @@ class PreemptConnector(BaseConnector):
         if phantom.is_fail(ret_val):
             return action_result.get_status()
 
-        result = response.get('data', {}).get('removeEntitiesFromWatchList', {})
+        result = response.get("data", {}).get("removeEntitiesFromWatchList", {})
         action_result.add_data(result)
 
         summary = action_result.update_summary({})
-        if len(result.get('updatedEntities', [])) == 0:
-            summary['result'] = "No entities updated"
+        if len(result.get("updatedEntities", [])) == 0:
+            summary["result"] = "No entities updated"
             return action_result.set_status(phantom.APP_ERROR)
         else:
-            summary['result'] = "{} was removed from the watch list".format(result['updatedEntities'][0]['primaryDisplayName'])
+            summary["result"] = "{} was removed from the watch list".format(result["updatedEntities"][0]["primaryDisplayName"])
 
         # Return success, no need to set the message, only the status
         # BaseConnector will create a textual message based off of the summary dictionary
         return action_result.set_status(phantom.APP_SUCCESS)
 
     def _handle_get_incident(self, param):
-
-        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        self.save_progress(f"In action handler for: {self.get_action_identifier()}")
 
         # Add an action result object to self (BaseConnector) to represent the action for this param
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        incident_number = param['incident_number']
+        incident_number = param["incident_number"]
 
-        data = '''{{
+        data = f"""{{
             incident(incidentId: "INC-{incident_number}")
             {{
                 ... on Incident {{
@@ -597,7 +578,7 @@ class PreemptConnector(BaseConnector):
                 type
                 }}
             }}
-            }}'''.format(incident_number=incident_number)
+            }}"""
 
         # make rest call
         ret_val, response = self._make_rest_call(action_result, data=data)
@@ -605,7 +586,7 @@ class PreemptConnector(BaseConnector):
         if phantom.is_fail(ret_val):
             return action_result.get_status()
 
-        result = response.get('data', {}).get('incident', {})
+        result = response.get("data", {}).get("incident", {})
 
         if result is None:
             return action_result.set_status(phantom.APP_ERROR, "Incident not found")
@@ -614,29 +595,28 @@ class PreemptConnector(BaseConnector):
 
         # Add a dictionary that is made up of the most important values from data into the summary
         summary = action_result.update_summary({})
-        summary['severity'] = result.get('severity', 'Could not retrieve severity')
+        summary["severity"] = result.get("severity", "Could not retrieve severity")
 
         # Return success, no need to set the message, only the status
         # BaseConnector will create a textual message based off of the summary dictionary
         return action_result.set_status(phantom.APP_SUCCESS)
 
     def _handle_update_incident(self, param):
-
-        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        self.save_progress(f"In action handler for: {self.get_action_identifier()}")
 
         # Add an action result object to self (BaseConnector) to represent the action for this param
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        incident_number = param['incident_number']
-        stage = param.get('stage')
-        reason = param.get('reason')
-        comment = param.get('comment')
+        incident_number = param["incident_number"]
+        stage = param.get("stage")
+        reason = param.get("reason")
+        comment = param.get("comment")
 
         # Add a dictionary that is made up of the most important values from data into the summary
         summary = action_result.update_summary({})
 
         if stage and reason:
-            data_stage = '''mutation {{
+            data_stage = f'''mutation {{
                 setIncidentState(input: {{ incidentId: "INC-{incident_number}", lifeCycleStage: {stage}, reason: "{reason}" }})
                 {{
                     incident
@@ -644,7 +624,7 @@ class PreemptConnector(BaseConnector):
                     lifeCycleStage
                     }}
                 }}
-            }}'''.format(incident_number=incident_number, stage=stage, reason=reason)
+            }}'''
 
             # make rest call
             ret_val, response = self._make_rest_call(action_result, data=data_stage)
@@ -652,13 +632,13 @@ class PreemptConnector(BaseConnector):
             if phantom.is_fail(ret_val):
                 return action_result.get_status()
 
-            result = response.get('data', {})
+            result = response.get("data", {})
             action_result.add_data(result)
 
-            summary['life_cycle_state'] = "Incident state is {}".format(stage)
+            summary["life_cycle_state"] = f"Incident state is {stage}"
 
         if comment:
-            data_comment = '''mutation {{
+            data_comment = f'''mutation {{
                 addCommentToIncident(input: {{ comment: "{comment}", incidentId: "INC-{incident_number}"}}){{
                     incident {{
                         comments {{
@@ -669,7 +649,7 @@ class PreemptConnector(BaseConnector):
                         }}
                     }}
                 }}
-            }}'''.format(incident_number=incident_number, comment=comment)
+            }}'''
 
             # make rest call
             ret_val, response = self._make_rest_call(action_result, data=data_comment)
@@ -677,14 +657,14 @@ class PreemptConnector(BaseConnector):
             if phantom.is_fail(ret_val):
                 return action_result.get_status()
 
-            result = response.get('data', {})
+            result = response.get("data", {})
             action_result.add_data(result)
 
-            summary['num_comments'] = len(result.get('addCommentToIncident', {}).get('incident', {}).get('comments', []))
-            summary['comment_status'] = "Comment successfully added to incident"
+            summary["num_comments"] = len(result.get("addCommentToIncident", {}).get("incident", {}).get("comments", []))
+            summary["comment_status"] = "Comment successfully added to incident"
 
         if not stage or not reason:
-            summary['life_cycle_state'] = "Life cycle stage not updated. Both stage and reason parameters must be included in action request"
+            summary["life_cycle_state"] = "Life cycle stage not updated. Both stage and reason parameters must be included in action request"
             if not comment:
                 return action_result.set_status(phantom.APP_ERROR, PREEMPT_INVALID_UPDATE_INCIDENT_PARAMS)
 
@@ -696,11 +676,9 @@ class PreemptConnector(BaseConnector):
         return action_result.set_status(phantom.APP_SUCCESS)
 
     def _get_artifact_id(self, sdi, container_id):
-
         config = self.get_config()
         verify_server_cert = config.get(PREEMPT_JSON_VERIFY_SERVER_CERT, False)
-        url = '{0}rest/artifact?_filter_source_data_identifier="{1}"&_filter_container_id={2}'.format(self.get_phantom_base_url(),
-            sdi, container_id)
+        url = f'{self.get_phantom_base_url()}rest/artifact?_filter_source_data_identifier="{sdi}"&_filter_container_id={container_id}'
 
         try:
             r = requests.get(url, verify=verify_server_cert, timeout=DEFAULT_REQUEST_TIMEOUT)
@@ -709,12 +687,12 @@ class PreemptConnector(BaseConnector):
             self.debug_print("Unable to query Preempt artifact", e)
             return None
 
-        if resp_json.get('count', 0) <= 0:
+        if resp_json.get("count", 0) <= 0:
             self.debug_print("No artifact matched")
             return None
 
         try:
-            artifact_id = resp_json.get('data', [])[0]['id']
+            artifact_id = resp_json.get("data", [])[0]["id"]
         except Exception as e:
             self.debug_print("Artifact results, not proper", e)
             return None
@@ -722,14 +700,13 @@ class PreemptConnector(BaseConnector):
         return artifact_id
 
     def _update_container(self, incident, container_id, last_time):
-
         config = self.get_config()
         verify_server_cert = config.get(PREEMPT_JSON_VERIFY_SERVER_CERT, False)
         updated = dict()
-        updated['data'] = incident
-        updated['description'] = "{}: {}".format(incident['incidentId'], incident['type'])
+        updated["data"] = incident
+        updated["description"] = "{}: {}".format(incident["incidentId"], incident["type"])
 
-        url = '{0}rest/container/{1}'.format(self.get_phantom_base_url(), container_id)
+        url = f"{self.get_phantom_base_url()}rest/container/{container_id}"
 
         try:
             r = requests.post(url, data=json.dumps(updated), verify=verify_server_cert, timeout=DEFAULT_REQUEST_TIMEOUT)
@@ -738,8 +715,8 @@ class PreemptConnector(BaseConnector):
             self.debug_print("Exception occurred while updating container", e)
             return phantom.APP_ERROR
 
-        if r.status_code != 200 or resp_json.get('failed'):
-            self.debug_print("There was an issue updating a container", resp_json.get('failed'))
+        if r.status_code != 200 or resp_json.get("failed"):
+            self.debug_print("There was an issue updating a container", resp_json.get("failed"))
             return phantom.APP_ERROR
 
         artifact_list = list()
@@ -747,25 +724,25 @@ class PreemptConnector(BaseConnector):
 
         # Check for and add comments as artifacts
         try:
-            for comment in incident['comments']:
-                if not self._get_artifact_id("{}-{}-{}".format(container_id, 'comment', comment['timestamp']), container_id):
-                    self._handle_comment(comment, container_id, 'Comment', artifact_list)
+            for comment in incident["comments"]:
+                if not self._get_artifact_id("{}-{}-{}".format(container_id, "comment", comment["timestamp"]), container_id):
+                    self._handle_comment(comment, container_id, "Comment", artifact_list)
         except:
             pass
 
         # Check for and add compromised entities as artifacts
         try:
-            for entity in incident['compromisedEntities']:
-                if not self._get_artifact_id("{}-{}-{}".format(container_id, 'compromisedEntity', entity['creationTime']), container_id):
-                    self._handle_compromised_entity(entity, container_id, 'Compromised Entity', artifact_list)
+            for entity in incident["compromisedEntities"]:
+                if not self._get_artifact_id("{}-{}-{}".format(container_id, "compromisedEntity", entity["creationTime"]), container_id):
+                    self._handle_compromised_entity(entity, container_id, "Compromised Entity", artifact_list)
         except:
             pass
 
         # Check for and add alert events as artifacts
         try:
-            for event in incident['alertEvents']:
-                if not self._get_artifact_id("{}-{}-{}".format(container_id, 'alertEvent', event['timestamp']), container_id):
-                    self._handle_alert_event(event, container_id, 'Alert Event', artifact_list)
+            for event in incident["alertEvents"]:
+                if not self._get_artifact_id("{}-{}-{}".format(container_id, "alertEvent", event["timestamp"]), container_id):
+                    self._handle_alert_event(event, container_id, "Alert Event", artifact_list)
         except:
             pass
 
@@ -776,11 +753,9 @@ class PreemptConnector(BaseConnector):
                 self.debug_print("Error saving artifact: ", message)
 
     def _get_container_id(self, incident_id):
-
         config = self.get_config()
         verify_server_cert = config.get(PREEMPT_JSON_VERIFY_SERVER_CERT, False)
-        url = '{0}rest/container?_filter_source_data_identifier="{1}"&_filter_asset={2}'.format(
-            self.get_phantom_base_url(), incident_id, self.get_asset_id())
+        url = f'{self.get_phantom_base_url()}rest/container?_filter_source_data_identifier="{incident_id}"&_filter_asset={self.get_asset_id()}'
         # url = '{0}rest/container?_filter_source_data_identifier="{1}"&_filter_asset={2}'.format(
         # "https://172.16.182.130/", incident_id, self.get_asset_id())
 
@@ -791,12 +766,12 @@ class PreemptConnector(BaseConnector):
             self.debug_print("Unable to query Preempt incident container", e)
             return None
 
-        if resp_json.get('count', 0) <= 0:
+        if resp_json.get("count", 0) <= 0:
             self.debug_print("No container matched")
             return None
 
         try:
-            container_id = resp_json.get('data', [])[0]['id']
+            container_id = resp_json.get("data", [])[0]["id"]
         except Exception as e:
             self.debug_print("Container results, not proper", e)
             return None
@@ -804,74 +779,70 @@ class PreemptConnector(BaseConnector):
         return container_id
 
     def _handle_comment(self, comment, container_id, base_name, artifact_list):
-
         artifact = dict()
 
-        artifact['name'] = '{} by {}'.format(base_name, comment['author']['displayName'])
-        artifact['label'] = 'comment'
-        artifact['container_id'] = container_id
+        artifact["name"] = "{} by {}".format(base_name, comment["author"]["displayName"])
+        artifact["label"] = "comment"
+        artifact["container_id"] = container_id
         # Comments do not have IDs, so using timestamp instead
-        artifact['source_data_identifier'] = "{}-{}-{}".format(container_id, 'comment', comment['timestamp'])
+        artifact["source_data_identifier"] = "{}-{}-{}".format(container_id, "comment", comment["timestamp"])
 
         artifact_cef = dict()
 
-        artifact_cef['body'] = comment['text']
-        artifact_cef['created'] = comment['timestamp']
-        artifact_cef['author_display_name'] = comment['author']['displayName']
+        artifact_cef["body"] = comment["text"]
+        artifact_cef["created"] = comment["timestamp"]
+        artifact_cef["author_display_name"] = comment["author"]["displayName"]
 
-        artifact['cef'] = artifact_cef
+        artifact["cef"] = artifact_cef
 
         artifact_list.append(artifact)
 
         return phantom.APP_SUCCESS
 
     def _handle_compromised_entity(self, entity, container_id, base_name, artifact_list):
-
         artifact = dict()
 
-        artifact['name'] = '{}: {} "{}"'.format(base_name, entity['type'], entity['primaryDisplayName'])
-        artifact['label'] = 'compromised_entity'
-        artifact['container_id'] = container_id
-        artifact['source_data_identifier'] = "{}-{}-{}".format(container_id, 'compromisedEntity', entity['creationTime'])
+        artifact["name"] = '{}: {} "{}"'.format(base_name, entity["type"], entity["primaryDisplayName"])
+        artifact["label"] = "compromised_entity"
+        artifact["container_id"] = container_id
+        artifact["source_data_identifier"] = "{}-{}-{}".format(container_id, "compromisedEntity", entity["creationTime"])
 
         artifact_cef = dict()
 
-        artifact_cef['type'] = entity['type']
-        artifact_cef['primary_display_name'] = entity['primaryDisplayName']
-        artifact_cef['secondary_display_name'] = entity['secondaryDisplayName']
+        artifact_cef["type"] = entity["type"]
+        artifact_cef["primary_display_name"] = entity["primaryDisplayName"]
+        artifact_cef["secondary_display_name"] = entity["secondaryDisplayName"]
 
-        artifact['cef'] = artifact_cef
+        artifact["cef"] = artifact_cef
 
         artifact_list.append(artifact)
 
         return phantom.APP_SUCCESS
 
     def _handle_alert_event(self, event, container_id, base_name, artifact_list):
-
-        for ent in event['entities']:
+        for ent in event["entities"]:
             artifact = dict()
 
-            artifact['name'] = '{}: {}'.format(base_name, event['eventLabel'])
-            artifact['label'] = 'alert_event'
-            artifact['container_id'] = container_id
-            artifact['source_data_identifier'] = "{}-{}-{}".format(container_id, 'alertEvent', event['timestamp'])
+            artifact["name"] = "{}: {}".format(base_name, event["eventLabel"])
+            artifact["label"] = "alert_event"
+            artifact["container_id"] = container_id
+            artifact["source_data_identifier"] = "{}-{}-{}".format(container_id, "alertEvent", event["timestamp"])
 
             artifact_cef = dict()
 
-            artifact_cef['type'] = ent['type']
-            artifact_cef['primary_display_name'] = ent['primaryDisplayName']
-            artifact_cef['secondary_display_name'] = ent['secondaryDisplayName']
+            artifact_cef["type"] = ent["type"]
+            artifact_cef["primary_display_name"] = ent["primaryDisplayName"]
+            artifact_cef["secondary_display_name"] = ent["secondaryDisplayName"]
 
-            artifact['cef'] = artifact_cef
+            artifact["cef"] = artifact_cef
 
             artifact_list.append(artifact)
 
         return phantom.APP_SUCCESS
 
     def _save_incident(self, incident, last_time):
-
         # Check if there is already a container for the incident id (Example: INC-1)
-        container_id = self._get_container_id(incident['incidentId'])
+        container_id = self._get_container_id(incident["incidentId"])
 
         if container_id:
             # Ticket has already been ingested. Need to update its container.
@@ -880,11 +851,11 @@ class PreemptConnector(BaseConnector):
 
         # Build the new container
         container = dict()
-        container['name'] = "Preempt {}: {}".format(incident['incidentId'], incident['type'])
-        container['data'] = incident
-        container['description'] = "{}: {}".format(incident['incidentId'], incident['type'])
-        container['source_data_identifier'] = incident['incidentId']
-        container['label'] = self.get_config().get('ingest', {}).get('container_label')
+        container["name"] = "Preempt {}: {}".format(incident["incidentId"], incident["type"])
+        container["data"] = incident
+        container["description"] = "{}: {}".format(incident["incidentId"], incident["type"])
+        container["source_data_identifier"] = incident["incidentId"]
+        container["label"] = self.get_config().get("ingest", {}).get("container_label")
 
         # Save the container
         ret_val, message, container_id = self.save_container(container)
@@ -896,22 +867,22 @@ class PreemptConnector(BaseConnector):
 
         # Check for and add comments as artifacts
         try:
-            for comment in incident['comments']:
-                self._handle_comment(comment, container_id, 'Comment', artifact_list)
+            for comment in incident["comments"]:
+                self._handle_comment(comment, container_id, "Comment", artifact_list)
         except:
             pass
 
         # Check for and add compromised entities as artifacts
         try:
-            for entity in incident['compromisedEntities']:
-                self._handle_compromised_entity(entity, container_id, 'Compromised Entity', artifact_list)
+            for entity in incident["compromisedEntities"]:
+                self._handle_compromised_entity(entity, container_id, "Compromised Entity", artifact_list)
         except:
             pass
 
         # Check for and add alert events as artifacts
         try:
-            for event in incident['alertEvents']:
-                self._handle_alert_event(event, container_id, 'Alert Event', artifact_list)
+            for event in incident["alertEvents"]:
+                self._handle_alert_event(event, container_id, "Alert Event", artifact_list)
         except:
             pass
 
@@ -923,14 +894,12 @@ class PreemptConnector(BaseConnector):
         return phantom.APP_SUCCESS
 
     def _build_artifact(self, incident, container_id):
-
         artifact = dict()
-        artifact['container_id'] = container_id
-        artifact['source_data_identifier'] = incident['incidentId']
+        artifact["container_id"] = container_id
+        artifact["source_data_identifier"] = incident["incidentId"]
 
     def _on_poll(self, param):
-
-        self.save_progress("Using URL: {}".format(self.platform_address))
+        self.save_progress(f"Using URL: {self.platform_address}")
         self.save_progress(phantom.APP_PROG_CONNECTING_TO_ELLIPSES, self.platform_address)
 
         # Get config and state
@@ -941,11 +910,11 @@ class PreemptConnector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         # Get time from last poll, save now as time for this poll
-        last_time = state.get('last_time', 0.0)
-        state['last_time'] = time.time()
+        last_time = state.get("last_time", 0.0)
+        state["last_time"] = time.time()
         last_converted_time = datetime.fromtimestamp(last_time)
 
-        data = '''{{
+        data = """{{
             incidents({after}
                         {updated_after}
                         sortOrder: ASCENDING
@@ -984,27 +953,27 @@ class PreemptConnector(BaseConnector):
                     hasNextPage
                 }}
             }}
-        }}'''
+        }}"""
 
         # If it's a poll now don't filter based on update time
         if self.is_poll_now():
-            after = ''
-            updated_after = ''
+            after = ""
+            updated_after = ""
             max_incidents = param.get(phantom.APP_JSON_CONTAINER_COUNT)
 
         # If it's the first poll, don't filter based on update time
-        elif state.get('first_run', True):
-            state['first_run'] = False
-            after = ''
-            updated_after = 'updatedAfter: "{}"'.format(last_converted_time)
-            max_incidents = int(config.get('first_run_max_incidents', 1000))
+        elif state.get("first_run", True):
+            state["first_run"] = False
+            after = ""
+            updated_after = f'updatedAfter: "{last_converted_time}"'
+            max_incidents = int(config.get("first_run_max_incidents", 1000))
 
         # If it's scheduled polling add a filter for update time being greater than the last poll time
         else:
-            after = ''
-            updated_time = datetime.fromtimestamp(last_time + .01)
-            updated_after = 'updatedAfter: "{}"'.format(updated_time)
-            max_incidents = int(config.get('max_incidents', 1000))
+            after = ""
+            updated_time = datetime.fromtimestamp(last_time + 0.01)
+            updated_after = f'updatedAfter: "{updated_time}"'
+            max_incidents = int(config.get("max_incidents", 1000))
 
         incidents = list()
         new_last_time = ""
@@ -1018,7 +987,7 @@ class PreemptConnector(BaseConnector):
                 return action_result.get_status()
 
             # Parse the response to get list of incidents
-            tmp_incidents = response.get('data', {}).get('incidents', {}).get('nodes', [])
+            tmp_incidents = response.get("data", {}).get("incidents", {}).get("nodes", [])
 
             if not tmp_incidents:
                 return action_result.set_status(phantom.APP_SUCCESS)
@@ -1028,7 +997,7 @@ class PreemptConnector(BaseConnector):
                     if max_incidents > len(incidents):
                         incidents.append(item)
                         if not self.is_poll_now():
-                            new_last_time = item['endTime']  # This will be converted to epoch below
+                            new_last_time = item["endTime"]  # This will be converted to epoch below
                     else:
                         break
                 else:
@@ -1036,12 +1005,12 @@ class PreemptConnector(BaseConnector):
                 break
             else:
                 incidents += tmp_incidents
-                new_last_time = tmp_incidents[-1]['endTime']
+                new_last_time = tmp_incidents[-1]["endTime"]
 
-            has_next_page = response.get('data', {}).get('incidents', {}).get('pageInfo', {}).get('hasNextPage', False)
+            has_next_page = response.get("data", {}).get("incidents", {}).get("pageInfo", {}).get("hasNextPage", False)
             if has_next_page is True:
-                after = 'after: "{}"'.format(response['data']['incidents']['pageInfo']['endCursor'])
-                updated_after = ''
+                after = 'after: "{}"'.format(response["data"]["incidents"]["pageInfo"]["endCursor"])
+                updated_after = ""
             else:
                 break
 
@@ -1058,9 +1027,9 @@ class PreemptConnector(BaseConnector):
             try:
                 utc_time = datetime.strptime(str(new_last_time), "%Y-%m-%dT%H:%M:%S.%fZ")
                 epoch_time = (utc_time - datetime(1970, 1, 1)).total_seconds()
-                state['last_time'] = epoch_time
+                state["last_time"] = epoch_time
             except:
-                state['last_time'] = str(new_last_time)
+                state["last_time"] = str(new_last_time)
 
             # Set self._state to state. It will be saved in finalize()
             self._state = state
@@ -1071,7 +1040,6 @@ class PreemptConnector(BaseConnector):
         return action_result.set_status(phantom.APP_SUCCESS)
 
     def handle_action(self, param):
-
         ret_val = phantom.APP_SUCCESS
 
         # Get the action that we are supposed to execute for this App Run
@@ -1079,37 +1047,36 @@ class PreemptConnector(BaseConnector):
 
         self.debug_print("action_id", self.get_action_identifier())
 
-        if action_id == 'test_connectivity':
+        if action_id == "test_connectivity":
             ret_val = self._handle_test_connectivity(param)
 
-        elif action_id == 'get_user_attributes':
+        elif action_id == "get_user_attributes":
             ret_val = self._handle_get_user_attributes(param)
 
-        elif action_id == 'get_user_activity':
+        elif action_id == "get_user_activity":
             ret_val = self._handle_get_user_activity(param)
 
-        elif action_id == 'get_user_risk':
+        elif action_id == "get_user_risk":
             ret_val = self._handle_get_user_risk(param)
 
-        elif action_id == 'watch_user':
+        elif action_id == "watch_user":
             ret_val = self._handle_watch_user(param)
 
-        elif action_id == 'unwatch_user':
+        elif action_id == "unwatch_user":
             ret_val = self._handle_unwatch_user(param)
 
-        elif action_id == 'get_incident':
+        elif action_id == "get_incident":
             ret_val = self._handle_get_incident(param)
 
-        elif action_id == 'update_incident':
+        elif action_id == "update_incident":
             ret_val = self._handle_update_incident(param)
 
-        elif action_id == 'on_poll':
+        elif action_id == "on_poll":
             ret_val = self._on_poll(param)
 
         return ret_val
 
     def initialize(self):
-
         # Load the state in initialize, use it to store data
         # that needs to be accessed across actions
         self._state = self.load_state()
@@ -1127,20 +1094,18 @@ class PreemptConnector(BaseConnector):
         optional_config_name = config.get('optional_config_name')
         """
 
-        self.platform_address = config['platform_address'].rstrip('/')
-        self.api_token = config['api_token']
+        self.platform_address = config["platform_address"].rstrip("/")
+        self.api_token = config["api_token"]
 
         return phantom.APP_SUCCESS
 
     def finalize(self):
-
         # Save the state, this data is saved across actions and app upgrades
         self.save_state(self._state)
         return phantom.APP_SUCCESS
 
 
-if __name__ == '__main__':
-
+if __name__ == "__main__":
     import argparse
 
     import pudb
@@ -1149,10 +1114,10 @@ if __name__ == '__main__':
 
     argparser = argparse.ArgumentParser()
 
-    argparser.add_argument('input_test_json', help='Input Test JSON file')
-    argparser.add_argument('-u', '--username', help='username', required=False)
-    argparser.add_argument('-p', '--password', help='password', required=False)
-    argparser.add_argument('-v', '--verify', action='store_true', help='verify', required=False, default=False)
+    argparser.add_argument("input_test_json", help="Input Test JSON file")
+    argparser.add_argument("-u", "--username", help="username", required=False)
+    argparser.add_argument("-p", "--password", help="password", required=False)
+    argparser.add_argument("-v", "--verify", action="store_true", help="verify", required=False, default=False)
 
     args = argparser.parse_args()
     session_id = None
@@ -1162,31 +1127,31 @@ if __name__ == '__main__':
     verify = args.verify
 
     if username is not None and password is None:
-
         # User specified a username but not a password, so ask
         import getpass
+
         password = getpass.getpass("Password: ")
 
     if username and password:
         try:
-            login_url = BaseConnector._get_phantom_base_url() + '/login'
+            login_url = BaseConnector._get_phantom_base_url() + "/login"
 
             print("Accessing the Login page")
             r = requests.get(login_url, verify=verify, timeout=DEFAULT_REQUEST_TIMEOUT)
-            csrftoken = r.cookies['csrftoken']
+            csrftoken = r.cookies["csrftoken"]
 
             data = dict()
-            data['username'] = username
-            data['password'] = password
-            data['csrfmiddlewaretoken'] = csrftoken
+            data["username"] = username
+            data["password"] = password
+            data["csrfmiddlewaretoken"] = csrftoken
 
             headers = dict()
-            headers['Cookie'] = 'csrftoken=' + csrftoken
-            headers['Referer'] = login_url
+            headers["Cookie"] = "csrftoken=" + csrftoken
+            headers["Referer"] = login_url
 
             print("Logging into Platform to get the session id")
             r2 = requests.post(login_url, verify=verify, data=data, headers=headers, timeout=DEFAULT_REQUEST_TIMEOUT)
-            session_id = r2.cookies['sessionid']
+            session_id = r2.cookies["sessionid"]
         except Exception as e:
             print("Unable to get session id from the platform. Error: " + str(e))
             sys.exit(1)
@@ -1199,9 +1164,9 @@ if __name__ == '__main__':
         connector = PreemptConnector()
         connector.print_progress_message = True
 
-        if (session_id is not None):
-            in_json['user_session_token'] = session_id
-            connector._set_csrf_info(csrftoken, headers['Referer'])
+        if session_id is not None:
+            in_json["user_session_token"] = session_id
+            connector._set_csrf_info(csrftoken, headers["Referer"])
 
         ret_val = connector._handle_action(json.dumps(in_json), None)
         print(json.dumps(json.loads(ret_val), indent=4))

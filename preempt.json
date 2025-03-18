@@ -9,7 +9,7 @@
     "product_name": "Preempt Platform",
     "product_version_regex": ".*",
     "publisher": "Splunk Community",
-    "license": "Copyright (c) 2019-2022 Splunk Inc.",
+    "license": "Copyright (c) 2019-2025 Splunk Inc.",
     "app_version": "3.0.0",
     "utctime_updated": "2022-03-17T18:48:27.000000Z",
     "package_name": "phantom_preempt",
@@ -1044,6 +1044,10 @@
                     "example_values": [
                         1
                     ]
+                },
+                {
+                    "data_path": "action_result.parameter.ph_0",
+                    "data_type": "ph"
                 }
             ],
             "render": {
