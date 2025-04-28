@@ -1,7 +1,7 @@
 # Preempt
 
 Publisher: Splunk Community \
-Connector Version: 3.0.0 \
+Connector Version: 3.0.1 \
 Product Vendor: Preempt \
 Product Name: Preempt Platform \
 Minimum Product Version: 5.1.0
