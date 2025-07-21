@@ -14,7 +14,7 @@
     "utctime_updated": "2025-04-28T19:02:57.192005Z",
     "package_name": "phantom_preempt",
     "main_module": "preempt_connector.py",
-    "python_version": "3",
+    "python_version": ["3.9", "3.13"],
     "min_phantom_version": "5.1.0",
     "fips_compliant": false,
     "app_wizard_version": "1.0.0",
