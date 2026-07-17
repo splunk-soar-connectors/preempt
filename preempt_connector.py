@@ -1,6 +1,6 @@
 # File: preempt_connector.py
 #
-# Copyright (c) 2019-2025 Splunk Inc.
+# Copyright (c) 2019-2026 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -206,7 +206,7 @@ class PreemptConnector(BaseConnector):
 
         attribute_type = ATTRIBUTE_TYPES.get(attribute)
 
-        data = f'''{{
+        data = f"""{{
             entities({attribute_type}: {self._graphql_string(username)}
                     domains: {self._graphql_string(domain)}
                     archived: false
@@ -248,7 +248,7 @@ class PreemptConnector(BaseConnector):
                     }}
                 }}
             }}
-        }}'''
+        }}"""
 
         # make rest call
         ret_val, response = self._make_rest_call(action_result, data=data)
@@ -315,7 +315,7 @@ class PreemptConnector(BaseConnector):
             after = param.get("after")
             after_clause = f"after: {self._graphql_string(after)}" if after else ""
 
-            data = f'''{{
+            data = f"""{{
                 timeline(sourceEntityQuery: {{ samAccountNames: {self._graphql_string(username)} }}
                         startTime: {self._graphql_string(start_time)}
                         {after_clause}
@@ -351,7 +351,7 @@ class PreemptConnector(BaseConnector):
                         hasNextPage
                     }}
                 }}
-            }}'''
+            }}"""
 
             # make rest call
             ret_val, response = self._make_rest_call(action_result, data=data)
@@ -407,7 +407,7 @@ class PreemptConnector(BaseConnector):
         attribute = param.get("attribute_type", "samAccountName")
         attribute_type = ATTRIBUTE_TYPES.get(attribute)
 
-        data = f'''{{
+        data = f"""{{
             entities({attribute_type}: {self._graphql_string(username)}
                     domains: {self._graphql_string(domain)}
                     archived: false
@@ -421,7 +421,7 @@ class PreemptConnector(BaseConnector):
                     }}
                 }}
             }}
-        }}'''
+        }}"""
 
         # make rest call
         ret_val, response = self._make_rest_call(action_result, data=data)
@@ -456,7 +456,7 @@ class PreemptConnector(BaseConnector):
         attribute = param.get("attribute_type", "samAccountName")
         attribute_type = ATTRIBUTE_TYPES.get(attribute)
 
-        data = f'''mutation {{
+        data = f"""mutation {{
             addEntitiesToWatchList(input: {{ entityQuery: {{ {attribute_type}: {self._graphql_string(username)}, domains: {self._graphql_string(domain)} }} }})
             {{
                 updatedEntities
@@ -465,7 +465,7 @@ class PreemptConnector(BaseConnector):
                 secondaryDisplayName
                 }}
             }}
-        }}'''
+        }}"""
 
         # make rest call
         ret_val, response = self._make_rest_call(action_result, data=data)
@@ -498,7 +498,7 @@ class PreemptConnector(BaseConnector):
         attribute = param.get("attribute_type", "samAccountName")
         attribute_type = ATTRIBUTE_TYPES.get(attribute)
 
-        data = f'''mutation {{
+        data = f"""mutation {{
             removeEntitiesFromWatchList(input: {{ entityQuery: {{ {attribute_type}: {self._graphql_string(username)}, domains: {self._graphql_string(domain)} }} }})
             {{
                 updatedEntities
@@ -507,7 +507,7 @@ class PreemptConnector(BaseConnector):
                 secondaryDisplayName
                 }}
             }}
-        }}'''
+        }}"""
 
         # make rest call
         ret_val, response = self._make_rest_call(action_result, data=data)
@@ -624,7 +624,7 @@ class PreemptConnector(BaseConnector):
         summary = action_result.update_summary({})
 
         if stage and reason:
-            data_stage = f'''mutation {{
+            data_stage = f"""mutation {{
                 setIncidentState(input: {{ incidentId: "INC-{incident_number}", lifeCycleStage: {stage}, reason: {self._graphql_string(reason)} }})
                 {{
                     incident
@@ -632,7 +632,7 @@ class PreemptConnector(BaseConnector):
                     lifeCycleStage
                     }}
                 }}
-            }}'''
+            }}"""
 
             # make rest call
             ret_val, response = self._make_rest_call(action_result, data=data_stage)
@@ -646,7 +646,7 @@ class PreemptConnector(BaseConnector):
             summary["life_cycle_state"] = f"Incident state is {stage}"
 
         if comment:
-            data_comment = f'''mutation {{
+            data_comment = f"""mutation {{
                 addCommentToIncident(input: {{ comment: {self._graphql_string(comment)}, incidentId: "INC-{incident_number}"}}){{
                     incident {{
                         comments {{
@@ -657,7 +657,7 @@ class PreemptConnector(BaseConnector):
                         }}
                     }}
                 }}
-            }}'''
+            }}"""
 
             # make rest call
             ret_val, response = self._make_rest_call(action_result, data=data_comment)
