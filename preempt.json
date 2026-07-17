@@ -1250,5 +1250,13 @@
                 "input_file": "wheels/shared/chardet-3.0.4-py2.py3-none-any.whl"
             }
         ]
+    },
+    "pip313_dependencies": {
+        "wheel": [
+            {
+                "module": "chardet",
+                "input_file": "wheels/shared/chardet-3.0.4-py2.py3-none-any.whl"
+            }
+        ]
     }
 }
