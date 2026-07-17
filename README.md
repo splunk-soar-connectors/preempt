@@ -4,7 +4,7 @@ Publisher: Splunk Community <br>
 Connector Version: 3.0.1 <br>
 Product Vendor: Preempt <br>
 Product Name: Preempt Platform <br>
-Minimum Product Version: 5.1.0
+Minimum Product Version: 6.3.0
 
 This app implements various incident management and investigative actions
 
