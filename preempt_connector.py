@@ -156,7 +156,7 @@ class PreemptConnector(BaseConnector):
         headers = {"Content-Type": "application/json", "Authorization": f"Bearer {self.api_token}"}
 
         try:
-            r = request_func(url, headers=headers, json={"query": data}, verify=config.get("verify_server_cert", False), **kwargs)
+            r = request_func(url, headers=headers, json={"query": data}, verify=config.get("verify_server_cert", True), **kwargs)
         except Exception as e:
             return RetVal(action_result.set_status(phantom.APP_ERROR, f"Error Connecting to server. Details: {e!s}"), resp_json)
 
@@ -677,7 +677,7 @@ class PreemptConnector(BaseConnector):
 
     def _get_artifact_id(self, sdi, container_id):
         config = self.get_config()
-        verify_server_cert = config.get(PREEMPT_JSON_VERIFY_SERVER_CERT, False)
+        verify_server_cert = config.get(PREEMPT_JSON_VERIFY_SERVER_CERT, True)
         url = f'{self.get_phantom_base_url()}rest/artifact?_filter_source_data_identifier="{sdi}"&_filter_container_id={container_id}'
 
         try:
@@ -701,7 +701,7 @@ class PreemptConnector(BaseConnector):
 
     def _update_container(self, incident, container_id, last_time):
         config = self.get_config()
-        verify_server_cert = config.get(PREEMPT_JSON_VERIFY_SERVER_CERT, False)
+        verify_server_cert = config.get(PREEMPT_JSON_VERIFY_SERVER_CERT, True)
         updated = dict()
         updated["data"] = incident
         updated["description"] = "{}: {}".format(incident["incidentId"], incident["type"])
@@ -754,7 +754,7 @@ class PreemptConnector(BaseConnector):
 
     def _get_container_id(self, incident_id):
         config = self.get_config()
-        verify_server_cert = config.get(PREEMPT_JSON_VERIFY_SERVER_CERT, False)
+        verify_server_cert = config.get(PREEMPT_JSON_VERIFY_SERVER_CERT, True)
         url = f'{self.get_phantom_base_url()}rest/container?_filter_source_data_identifier="{incident_id}"&_filter_asset={self.get_asset_id()}'
         # url = '{0}rest/container?_filter_source_data_identifier="{1}"&_filter_asset={2}'.format(
         # "https://172.16.182.130/", incident_id, self.get_asset_id())
