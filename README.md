@@ -1,10 +1,10 @@
 # Preempt
 
-Publisher: Splunk Community \
-Connector Version: 3.0.1 \
-Product Vendor: Preempt \
-Product Name: Preempt Platform \
-Minimum Product Version: 5.1.0
+Publisher: Splunk Community <br>
+Connector Version: 3.0.1 <br>
+Product Vendor: Preempt <br>
+Product Name: Preempt Platform <br>
+Minimum Product Version: 6.3.0
 
 This app implements various incident management and investigative actions
 
@@ -22,21 +22,21 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 
 ### Supported Actions
 
-[test connectivity](#action-test-connectivity) - Validate the asset configuration for connectivity using supplied configuration \
-[on poll](#action-on-poll) - Ingest from Preempt \
-[get user attributes](#action-get-user-attributes) - Gets the attributes of a user \
-[get user risk](#action-get-user-risk) - Gets the risk of a user \
-[watch user](#action-watch-user) - Watch a user \
-[unwatch user](#action-unwatch-user) - Stop watching a user \
-[get incident](#action-get-incident) - Get information about an incident \
-[update incident](#action-update-incident) - Update the incident state and/or add a comment to the incident \
+[test connectivity](#action-test-connectivity) - Validate the asset configuration for connectivity using supplied configuration <br>
+[on poll](#action-on-poll) - Ingest from Preempt <br>
+[get user attributes](#action-get-user-attributes) - Gets the attributes of a user <br>
+[get user risk](#action-get-user-risk) - Gets the risk of a user <br>
+[watch user](#action-watch-user) - Watch a user <br>
+[unwatch user](#action-unwatch-user) - Stop watching a user <br>
+[get incident](#action-get-incident) - Get information about an incident <br>
+[update incident](#action-update-incident) - Update the incident state and/or add a comment to the incident <br>
 [get user activity](#action-get-user-activity) - Get user activity from the specified number of hours ago
 
 ## action: 'test connectivity'
 
 Validate the asset configuration for connectivity using supplied configuration
 
-Type: **test** \
+Type: **test** <br>
 Read only: **True**
 
 #### Action Parameters
@@ -51,7 +51,7 @@ No Output
 
 Ingest from Preempt
 
-Type: **ingest** \
+Type: **ingest** <br>
 Read only: **True**
 
 #### Action Parameters
@@ -72,7 +72,7 @@ No Output
 
 Gets the attributes of a user
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 #### Action Parameters
@@ -111,7 +111,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Gets the risk of a user
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 #### Action Parameters
@@ -142,7 +142,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Watch a user
 
-Type: **correct** \
+Type: **correct** <br>
 Read only: **False**
 
 #### Action Parameters
@@ -172,7 +172,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Stop watching a user
 
-Type: **contain** \
+Type: **contain** <br>
 Read only: **False**
 
 #### Action Parameters
@@ -202,7 +202,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Get information about an incident
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 #### Action Parameters
@@ -244,7 +244,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Update the incident state and/or add a comment to the incident
 
-Type: **generic** \
+Type: **generic** <br>
 Read only: **False**
 
 An incident's stage cannot be changed from "resolved" to another stage.
@@ -282,7 +282,7 @@ action_result.parameter.ph_0 | ph | | |
 
 Get user activity from the specified number of hours ago
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 #### Action Parameters
@@ -322,7 +322,7 @@ ______________________________________________________________________
 
 Auto-generated Splunk SOAR Connector documentation.
 
-Copyright 2025 Splunk Inc.
+Copyright 2026 Splunk Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

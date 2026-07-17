@@ -1,6 +1,6 @@
 # File: preempt_connector.py
 #
-# Copyright (c) 2019-2025 Splunk Inc.
+# Copyright (c) 2019-2026 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -44,6 +44,12 @@ class PreemptConnector(BaseConnector):
         # modify this as you deem fit.
         self.platform_address = None
         self.api_token = None
+
+    @staticmethod
+    def _graphql_string(value):
+        """Encode a value as a GraphQL-compatible string literal."""
+
+        return json.dumps(str(value))
 
     def _process_empty_response(self, response, action_result):
         if response.status_code == 200:
@@ -156,7 +162,7 @@ class PreemptConnector(BaseConnector):
         headers = {"Content-Type": "application/json", "Authorization": f"Bearer {self.api_token}"}
 
         try:
-            r = request_func(url, headers=headers, json={"query": data}, verify=config.get("verify_server_cert", False), **kwargs)
+            r = request_func(url, headers=headers, json={"query": data}, verify=config.get("verify_server_cert", True), **kwargs)
         except Exception as e:
             return RetVal(action_result.set_status(phantom.APP_ERROR, f"Error Connecting to server. Details: {e!s}"), resp_json)
 
@@ -200,9 +206,9 @@ class PreemptConnector(BaseConnector):
 
         attribute_type = ATTRIBUTE_TYPES.get(attribute)
 
-        data = f'''{{
-            entities({attribute_type}: "{username}"
-                    domains: "{domain}"
+        data = f"""{{
+            entities({attribute_type}: {self._graphql_string(username)}
+                    domains: {self._graphql_string(domain)}
                     archived: false
                     first: 1)
             {{
@@ -242,7 +248,7 @@ class PreemptConnector(BaseConnector):
                     }}
                 }}
             }}
-        }}'''
+        }}"""
 
         # make rest call
         ret_val, response = self._make_rest_call(action_result, data=data)
@@ -306,14 +312,13 @@ class PreemptConnector(BaseConnector):
             else:
                 result_limit = int(limit)
 
-            after = param.get("after", None)
-            if after is None:
-                after = ""
+            after = param.get("after")
+            after_clause = f"after: {self._graphql_string(after)}" if after else ""
 
-            data = f'''{{
-                timeline(sourceEntityQuery: {{ samAccountNames: "{username}" }}
-                        startTime: "{start_time}"
-                        {after}
+            data = f"""{{
+                timeline(sourceEntityQuery: {{ samAccountNames: {self._graphql_string(username)} }}
+                        startTime: {self._graphql_string(start_time)}
+                        {after_clause}
                         sortOrder: DESCENDING
                         {types}
                         first: {result_limit})
@@ -346,7 +351,7 @@ class PreemptConnector(BaseConnector):
                         hasNextPage
                     }}
                 }}
-            }}'''
+            }}"""
 
             # make rest call
             ret_val, response = self._make_rest_call(action_result, data=data)
@@ -368,7 +373,7 @@ class PreemptConnector(BaseConnector):
 
             has_next_page = result.get("pageInfo", {}).get("hasNextPage", False)
             if has_next_page is True and len(action_result.get_data()) < result_limit:
-                param.update({"after": 'after: "{}"'.format(result["pageInfo"]["endCursor"])})
+                param.update({"after": result["pageInfo"]["endCursor"]})
             else:
                 break
 
@@ -402,9 +407,9 @@ class PreemptConnector(BaseConnector):
         attribute = param.get("attribute_type", "samAccountName")
         attribute_type = ATTRIBUTE_TYPES.get(attribute)
 
-        data = f'''{{
-            entities({attribute_type}: "{username}"
-                    domains: "{domain}"
+        data = f"""{{
+            entities({attribute_type}: {self._graphql_string(username)}
+                    domains: {self._graphql_string(domain)}
                     archived: false
                     first: 1)
             {{
@@ -416,7 +421,7 @@ class PreemptConnector(BaseConnector):
                     }}
                 }}
             }}
-        }}'''
+        }}"""
 
         # make rest call
         ret_val, response = self._make_rest_call(action_result, data=data)
@@ -451,8 +456,8 @@ class PreemptConnector(BaseConnector):
         attribute = param.get("attribute_type", "samAccountName")
         attribute_type = ATTRIBUTE_TYPES.get(attribute)
 
-        data = f'''mutation {{
-            addEntitiesToWatchList(input: {{ entityQuery: {{ {attribute_type}: "{username}", domains: "{domain}" }} }})
+        data = f"""mutation {{
+            addEntitiesToWatchList(input: {{ entityQuery: {{ {attribute_type}: {self._graphql_string(username)}, domains: {self._graphql_string(domain)} }} }})
             {{
                 updatedEntities
                 {{
@@ -460,7 +465,7 @@ class PreemptConnector(BaseConnector):
                 secondaryDisplayName
                 }}
             }}
-        }}'''
+        }}"""
 
         # make rest call
         ret_val, response = self._make_rest_call(action_result, data=data)
@@ -493,8 +498,8 @@ class PreemptConnector(BaseConnector):
         attribute = param.get("attribute_type", "samAccountName")
         attribute_type = ATTRIBUTE_TYPES.get(attribute)
 
-        data = f'''mutation {{
-            removeEntitiesFromWatchList(input: {{ entityQuery: {{ {attribute_type}: "{username}", domains: "{domain}" }} }})
+        data = f"""mutation {{
+            removeEntitiesFromWatchList(input: {{ entityQuery: {{ {attribute_type}: {self._graphql_string(username)}, domains: {self._graphql_string(domain)} }} }})
             {{
                 updatedEntities
                 {{
@@ -502,7 +507,7 @@ class PreemptConnector(BaseConnector):
                 secondaryDisplayName
                 }}
             }}
-        }}'''
+        }}"""
 
         # make rest call
         ret_val, response = self._make_rest_call(action_result, data=data)
@@ -612,19 +617,22 @@ class PreemptConnector(BaseConnector):
         reason = param.get("reason")
         comment = param.get("comment")
 
+        if stage and stage not in PREEMPT_INCIDENT_STAGES:
+            return action_result.set_status(phantom.APP_ERROR, "Invalid incident life cycle stage")
+
         # Add a dictionary that is made up of the most important values from data into the summary
         summary = action_result.update_summary({})
 
         if stage and reason:
-            data_stage = f'''mutation {{
-                setIncidentState(input: {{ incidentId: "INC-{incident_number}", lifeCycleStage: {stage}, reason: "{reason}" }})
+            data_stage = f"""mutation {{
+                setIncidentState(input: {{ incidentId: "INC-{incident_number}", lifeCycleStage: {stage}, reason: {self._graphql_string(reason)} }})
                 {{
                     incident
                     {{
                     lifeCycleStage
                     }}
                 }}
-            }}'''
+            }}"""
 
             # make rest call
             ret_val, response = self._make_rest_call(action_result, data=data_stage)
@@ -638,8 +646,8 @@ class PreemptConnector(BaseConnector):
             summary["life_cycle_state"] = f"Incident state is {stage}"
 
         if comment:
-            data_comment = f'''mutation {{
-                addCommentToIncident(input: {{ comment: "{comment}", incidentId: "INC-{incident_number}"}}){{
+            data_comment = f"""mutation {{
+                addCommentToIncident(input: {{ comment: {self._graphql_string(comment)}, incidentId: "INC-{incident_number}"}}){{
                     incident {{
                         comments {{
                             author {{
@@ -649,7 +657,7 @@ class PreemptConnector(BaseConnector):
                         }}
                     }}
                 }}
-            }}'''
+            }}"""
 
             # make rest call
             ret_val, response = self._make_rest_call(action_result, data=data_comment)
@@ -677,7 +685,7 @@ class PreemptConnector(BaseConnector):
 
     def _get_artifact_id(self, sdi, container_id):
         config = self.get_config()
-        verify_server_cert = config.get(PREEMPT_JSON_VERIFY_SERVER_CERT, False)
+        verify_server_cert = config.get(PREEMPT_JSON_VERIFY_SERVER_CERT, True)
         url = f'{self.get_phantom_base_url()}rest/artifact?_filter_source_data_identifier="{sdi}"&_filter_container_id={container_id}'
 
         try:
@@ -701,7 +709,7 @@ class PreemptConnector(BaseConnector):
 
     def _update_container(self, incident, container_id, last_time):
         config = self.get_config()
-        verify_server_cert = config.get(PREEMPT_JSON_VERIFY_SERVER_CERT, False)
+        verify_server_cert = config.get(PREEMPT_JSON_VERIFY_SERVER_CERT, True)
         updated = dict()
         updated["data"] = incident
         updated["description"] = "{}: {}".format(incident["incidentId"], incident["type"])
@@ -754,7 +762,7 @@ class PreemptConnector(BaseConnector):
 
     def _get_container_id(self, incident_id):
         config = self.get_config()
-        verify_server_cert = config.get(PREEMPT_JSON_VERIFY_SERVER_CERT, False)
+        verify_server_cert = config.get(PREEMPT_JSON_VERIFY_SERVER_CERT, True)
         url = f'{self.get_phantom_base_url()}rest/container?_filter_source_data_identifier="{incident_id}"&_filter_asset={self.get_asset_id()}'
         # url = '{0}rest/container?_filter_source_data_identifier="{1}"&_filter_asset={2}'.format(
         # "https://172.16.182.130/", incident_id, self.get_asset_id())

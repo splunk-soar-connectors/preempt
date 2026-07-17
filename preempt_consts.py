@@ -1,6 +1,6 @@
 # File: preempt_consts.py
 #
-# Copyright (c) 2019-2025 Splunk Inc.
+# Copyright (c) 2019-2026 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ ATTRIBUTE_TYPES = {
     "primaryDisplayName": "primaryDisplayNames",
     "secondaryDisplayName": "secondaryDisplayNames",
 }
+PREEMPT_INCIDENT_STAGES = {"NEW", "IN_PROGRESS", "DISMISS", "FALSE_POSITIVE", "RESOLVED"}
 
 TIMELINE_EVENT_TYPES = "[SUCCESSFUL_AUTHENTICATION, FAILED_AUTHENTICATION, SERVICE_ACCESS, DCERPC_OPERATION, REMOTE_CODE_EXECUTION, \
     FILE_OPERATION, LDAP_SEARCH, ACCOUNT_CREATED, PASSWORD_CHANGE, ACCOUNT_NAME_CHANGE, DEPARTMENT_CHANGE, OU_CHANGE, EMAIL_ADDRESS_CHANGE, \
