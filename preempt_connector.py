@@ -45,6 +45,12 @@ class PreemptConnector(BaseConnector):
         self.platform_address = None
         self.api_token = None
 
+    @staticmethod
+    def _graphql_string(value):
+        """Encode a value as a GraphQL-compatible string literal."""
+
+        return json.dumps(str(value))
+
     def _process_empty_response(self, response, action_result):
         if response.status_code == 200:
             return RetVal(phantom.APP_SUCCESS, {})
@@ -201,8 +207,8 @@ class PreemptConnector(BaseConnector):
         attribute_type = ATTRIBUTE_TYPES.get(attribute)
 
         data = f'''{{
-            entities({attribute_type}: "{username}"
-                    domains: "{domain}"
+            entities({attribute_type}: {self._graphql_string(username)}
+                    domains: {self._graphql_string(domain)}
                     archived: false
                     first: 1)
             {{
@@ -306,14 +312,13 @@ class PreemptConnector(BaseConnector):
             else:
                 result_limit = int(limit)
 
-            after = param.get("after", None)
-            if after is None:
-                after = ""
+            after = param.get("after")
+            after_clause = f"after: {self._graphql_string(after)}" if after else ""
 
             data = f'''{{
-                timeline(sourceEntityQuery: {{ samAccountNames: "{username}" }}
-                        startTime: "{start_time}"
-                        {after}
+                timeline(sourceEntityQuery: {{ samAccountNames: {self._graphql_string(username)} }}
+                        startTime: {self._graphql_string(start_time)}
+                        {after_clause}
                         sortOrder: DESCENDING
                         {types}
                         first: {result_limit})
@@ -368,7 +373,7 @@ class PreemptConnector(BaseConnector):
 
             has_next_page = result.get("pageInfo", {}).get("hasNextPage", False)
             if has_next_page is True and len(action_result.get_data()) < result_limit:
-                param.update({"after": 'after: "{}"'.format(result["pageInfo"]["endCursor"])})
+                param.update({"after": result["pageInfo"]["endCursor"]})
             else:
                 break
 
@@ -403,8 +408,8 @@ class PreemptConnector(BaseConnector):
         attribute_type = ATTRIBUTE_TYPES.get(attribute)
 
         data = f'''{{
-            entities({attribute_type}: "{username}"
-                    domains: "{domain}"
+            entities({attribute_type}: {self._graphql_string(username)}
+                    domains: {self._graphql_string(domain)}
                     archived: false
                     first: 1)
             {{
@@ -452,7 +457,7 @@ class PreemptConnector(BaseConnector):
         attribute_type = ATTRIBUTE_TYPES.get(attribute)
 
         data = f'''mutation {{
-            addEntitiesToWatchList(input: {{ entityQuery: {{ {attribute_type}: "{username}", domains: "{domain}" }} }})
+            addEntitiesToWatchList(input: {{ entityQuery: {{ {attribute_type}: {self._graphql_string(username)}, domains: {self._graphql_string(domain)} }} }})
             {{
                 updatedEntities
                 {{
@@ -494,7 +499,7 @@ class PreemptConnector(BaseConnector):
         attribute_type = ATTRIBUTE_TYPES.get(attribute)
 
         data = f'''mutation {{
-            removeEntitiesFromWatchList(input: {{ entityQuery: {{ {attribute_type}: "{username}", domains: "{domain}" }} }})
+            removeEntitiesFromWatchList(input: {{ entityQuery: {{ {attribute_type}: {self._graphql_string(username)}, domains: {self._graphql_string(domain)} }} }})
             {{
                 updatedEntities
                 {{
@@ -612,12 +617,15 @@ class PreemptConnector(BaseConnector):
         reason = param.get("reason")
         comment = param.get("comment")
 
+        if stage and stage not in PREEMPT_INCIDENT_STAGES:
+            return action_result.set_status(phantom.APP_ERROR, "Invalid incident life cycle stage")
+
         # Add a dictionary that is made up of the most important values from data into the summary
         summary = action_result.update_summary({})
 
         if stage and reason:
             data_stage = f'''mutation {{
-                setIncidentState(input: {{ incidentId: "INC-{incident_number}", lifeCycleStage: {stage}, reason: "{reason}" }})
+                setIncidentState(input: {{ incidentId: "INC-{incident_number}", lifeCycleStage: {stage}, reason: {self._graphql_string(reason)} }})
                 {{
                     incident
                     {{
@@ -639,7 +647,7 @@ class PreemptConnector(BaseConnector):
 
         if comment:
             data_comment = f'''mutation {{
-                addCommentToIncident(input: {{ comment: "{comment}", incidentId: "INC-{incident_number}"}}){{
+                addCommentToIncident(input: {{ comment: {self._graphql_string(comment)}, incidentId: "INC-{incident_number}"}}){{
                     incident {{
                         comments {{
                             author {{
